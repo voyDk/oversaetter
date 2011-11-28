@@ -18,12 +18,15 @@
  fun lexerError lexbuf s = 
      raise LexicalError (s, getPos lexbuf)
 
+ fun reference (s, pos) = Parser.REF (s, pos) 
+
  fun keyword (s, pos) =
      case s of
          "if"           => Parser.IF pos
        | "then"         => Parser.THEN pos
        | "else"         => Parser.ELSE pos
        | "int"          => Parser.INT pos
+       | "char"         => Parser.CHAR pos
        | "return"       => Parser.RETURN pos
        | _              => Parser.ID (s, pos)
 
@@ -40,6 +43,8 @@ rule Token = parse
   | [`0`-`9`]+          { case Int.fromString (getLexeme lexbuf) of
                                NONE   => lexerError lexbuf "Bad integer"
                              | SOME i => Parser.NUM (i, getPos lexbuf) }
+  | `*`[`a`-`z` `A`-`Z`] [`a`-`z` `A`-`Z` `0`-`9` `_`]* 
+                        { reference (getLexeme lexbuf,getPos lexbuf) }
   | [`a`-`z` `A`-`Z`] [`a`-`z` `A`-`Z` `0`-`9` `_`]*
                         { keyword (getLexeme lexbuf,getPos lexbuf) }
   | `+`                 { Parser.PLUS (getPos lexbuf) }
