@@ -1,7 +1,7 @@
 %token <string*(int*int)> ID REF
 %token <int*(int*int)> NUM
 %token <(int*int)> IF THEN ELSE WHILE INT CHAR RETURN
-%token <(int*int)> PLUS MINUS LESS ASSIGN
+%token <(int*int)> PLUS MINUS LESS ASSIGN EQUAL
 %token <(int*int)> LPAR RPAR
 %token <(int*int)> COMMA SEMICOLON EOF
 

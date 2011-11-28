@@ -52,6 +52,7 @@ rule Token = parse
   | `-`                 { Parser.MINUS (getPos lexbuf) }
   | `<`                 { Parser.LESS (getPos lexbuf) }
   | `=`                 { Parser.ASSIGN (getPos lexbuf) }
+  | "=="                { Parser.EQUAL (getPos lexbuf) }
   | `(`                 { Parser.LPAR (getPos lexbuf) }
   | `)`                 { Parser.RPAR (getPos lexbuf) }
   | `,`                 { Parser.COMMA (getPos lexbuf) }
