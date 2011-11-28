@@ -44,6 +44,8 @@ rule Token = parse
   | [`0`-`9`]+          { case Int.fromString (getLexeme lexbuf) of
                                NONE   => lexerError lexbuf "Bad integer"
                              | SOME i => Parser.NUM (i, getPos lexbuf) }
+  | [`'` `\`? ` `-`~` `'`]	{ Token lexbuf (* charConst : 32-126 -34,92,96 *) }
+  | [`"` `\`? ` `-`~` `"`]	{ Token lexbuf (* stringConst : 32-126 -34,92,96 *) }
   | `*`[`a`-`z` `A`-`Z`] [`a`-`z` `A`-`Z` `0`-`9` `_`]* 
                         { reference (getLexeme lexbuf,getPos lexbuf) }
   | [`a`-`z` `A`-`Z`] [`a`-`z` `A`-`Z` `0`-`9` `_`]*
