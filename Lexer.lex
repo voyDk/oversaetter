@@ -27,6 +27,7 @@
        | "else"         => Parser.ELSE pos
        | "int"          => Parser.INT pos
        | "char"         => Parser.CHAR pos
+       | "while"        => Parser.WHILE pos
        | "return"       => Parser.RETURN pos
        | _              => Parser.ID (s, pos)
 
