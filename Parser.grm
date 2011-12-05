@@ -2,7 +2,7 @@
 %token <int*(int*int)> NUM
 %token <(int*int)> IF THEN ELSE INT RETURN
 %token <(int*int)> PLUS MINUS LESS ASSIGN EQUAL
-%token <(int*int)> LPAR RPAR
+%token <(int*int)> LPAR RPAR LBLOCK RBLOCK
 %token <(int*int)> COMMA SEMICOLON EOF
 
 %right ELSE
@@ -22,6 +22,7 @@
 %type <S100.Exp list> Exps Exps1
 %type <S100.Lval> Lval
 %type <S100.Stat> Stat
+%type <S100.Stat list> Stats
 
 %%
 
@@ -55,6 +56,11 @@ Sid :	  ID		{ S100.Val $1 }
 Sids :	  Sid COMMA Sids
 			{ $1 :: $3 }
 	| Sid		{ [$1] }
+;
+
+Stats :	  Stat Stats	{ $1 :: $2 }
+	| 		{ [] }
+;
 
 Stat :	  Exp SEMICOLON	{ S100.EX $1 }
 	| IF LPAR Exp RPAR %prec ELSE Stat
