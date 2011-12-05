@@ -92,6 +92,8 @@ struct
 	then checkStat s vtable ftable
 	else raise Error ("Condition should be integer",p)
     | S100.Return (e,p) => ()
+    | S100.Block (ds,ss,p) =>
+	raise Error ("Block (Scope) not yet implemented in Type.sml",p)
 
   fun checkFunDec (t,sf,decs,body,p) ftable =
         checkStat body (checkDecs decs) ftable

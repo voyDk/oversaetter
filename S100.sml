@@ -38,7 +38,7 @@ struct
     | IfElse of Exp * Stat * Stat * pos
     | While of Exp * Stat * pos 
     | Return of Exp * pos
-(*    | Block of Dec list * Stat list * pos *)
+    | Block of Dec list * Stat list * pos 
 
   type FunDec = Type * Sid * Dec list * Stat * pos
 

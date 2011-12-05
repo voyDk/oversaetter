@@ -192,7 +192,7 @@ struct
 	  @ [Mips.J l2, Mips.LABEL l1] @ code2 @ [Mips.LABEL l2]
 	end
     | S100.While (e,s,p) =>
-	raise Error ("Not yet implemented",p)
+	raise Error ("While not yet implemented in Compiler.sml",p)
     | S100.Return (e,p) =>
         let
 	  val t = "_return_"^newName()
@@ -200,6 +200,8 @@ struct
 	in
 	  code0 @ [Mips.MOVE ("2",t), Mips.J exitLabel]
 	end
+    | S100.Block (ds,ss,p) =>
+	raise Error ("Block (scope) not yet implemented in Compiler.sml",p)
 
   (* code for saving and restoring callee-saves registers *)
   fun stackSave currentReg maxReg savecode restorecode offset =
