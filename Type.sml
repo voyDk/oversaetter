@@ -87,6 +87,10 @@ struct
 	then (checkStat s1 vtable ftable;
 	      checkStat s2 vtable ftable)
 	else raise Error ("Condition should be integer",p)
+    | S100.While (e,s,p) =>
+        if checkExp e vtable ftable = Int
+	then checkStat s vtable ftable
+	else raise Error ("Condition should be integer",p)
     | S100.Return (e,p) => ()
 
   fun checkFunDec (t,sf,decs,body,p) ftable =

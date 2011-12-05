@@ -23,6 +23,7 @@
          "if"           => Parser.IF pos
        | "then"         => Parser.THEN pos
        | "else"         => Parser.ELSE pos
+       | "while"	=> Parser.WHILE pos
        | "int"          => Parser.INT pos
        | "return"       => Parser.RETURN pos
        | _              => Parser.ID (s, pos)
@@ -49,6 +50,8 @@ rule Token = parse
   | "=="                { Parser.EQUAL (getPos lexbuf) }
   | `(`                 { Parser.LPAR (getPos lexbuf) }
   | `)`                 { Parser.RPAR (getPos lexbuf) }
+  | `{`                 { Parser.LBLOCK (getPos lexbuf) }
+  | `}`                 { Parser.RBLOCK (getPos lexbuf) }
   | `,`                 { Parser.COMMA (getPos lexbuf) }
   | `;`                 { Parser.SEMICOLON (getPos lexbuf) }
   | eof                 { Parser.EOF (getPos lexbuf) }

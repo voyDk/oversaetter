@@ -36,7 +36,7 @@ struct
     = EX of Exp
     | If of Exp * Stat * pos
     | IfElse of Exp * Stat * Stat * pos
-(*    | While of Exp * Stat * pos *)
+    | While of Exp * Stat * pos 
     | Return of Exp * pos
 (*    | Block of Dec list * Stat list * pos *)
 
