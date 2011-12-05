@@ -31,18 +31,19 @@
   20      | Exp PLUS Exp
   21      | Exp MINUS Exp
   22      | Exp LESS Exp
-  23      | ID LPAR Exps RPAR
-  24      | LPAR Exp RPAR
+  23      | Exp EQUAL Exp
+  24      | ID LPAR Exps RPAR
+  25      | LPAR Exp RPAR
 
-  25  Exps :
-  26       | Exps1
+  26  Exps :
+  27       | Exps1
 
-  27  Exps1 : Exp
-  28        | Exp COMMA Exps
+  28  Exps1 : Exp
+  29        | Exp COMMA Exps
 
-  29  Lval : ID
+  30  Lval : ID
 
-  30  %entry% : '\001' Prog
+  31  %entry% : '\001' Prog
 
 state 0
 	$accept : . %entry% $end  (0)
@@ -54,7 +55,7 @@ state 0
 
 
 state 1
-	%entry% : '\001' . Prog  (30)
+	%entry% : '\001' . Prog  (31)
 	FunDecs : .  (3)
 
 	INT  shift 3
@@ -78,9 +79,9 @@ state 3
 
 
 state 4
-	%entry% : '\001' Prog .  (30)
+	%entry% : '\001' Prog .  (31)
 
-	.  reduce 30
+	.  reduce 31
 
 
 state 5
@@ -182,17 +183,18 @@ state 15
 
 
 state 16
-	Exp : ID . LPAR Exps RPAR  (23)
-	Lval : ID .  (29)
+	Exp : ID . LPAR Exps RPAR  (24)
+	Lval : ID .  (30)
 
 	LPAR  shift 27
-	ASSIGN  reduce 29
-	COMMA  reduce 29
-	LESS  reduce 29
-	MINUS  reduce 29
-	PLUS  reduce 29
-	RPAR  reduce 29
-	SEMICOLON  reduce 29
+	ASSIGN  reduce 30
+	COMMA  reduce 30
+	EQUAL  reduce 30
+	LESS  reduce 30
+	MINUS  reduce 30
+	PLUS  reduce 30
+	RPAR  reduce 30
+	SEMICOLON  reduce 30
 
 
 state 17
@@ -204,7 +206,7 @@ state 17
 
 
 state 18
-	Exp : LPAR . Exp RPAR  (24)
+	Exp : LPAR . Exp RPAR  (25)
 
 	ID  shift 16
 	LPAR  shift 18
@@ -238,11 +240,13 @@ state 21
 	Exp : Exp . PLUS Exp  (20)
 	Exp : Exp . MINUS Exp  (21)
 	Exp : Exp . LESS Exp  (22)
+	Exp : Exp . EQUAL Exp  (23)
 
-	LESS  shift 31
-	MINUS  shift 32
-	PLUS  shift 33
-	SEMICOLON  shift 34
+	EQUAL  shift 31
+	LESS  shift 32
+	MINUS  shift 33
+	PLUS  shift 34
+	SEMICOLON  shift 35
 	.  error
 
 
@@ -250,8 +254,9 @@ state 22
 	Exp : Lval .  (18)
 	Exp : Lval . ASSIGN Exp  (19)
 
-	ASSIGN  shift 35
+	ASSIGN  shift 36
 	COMMA  reduce 18
+	EQUAL  reduce 18
 	LESS  reduce 18
 	MINUS  reduce 18
 	PLUS  reduce 18
@@ -266,7 +271,7 @@ state 23
 	INT  shift 3
 	EOF  reduce 3
 
-	FunDecs  goto 36
+	FunDecs  goto 37
 	Type  goto 6
 
 
@@ -274,7 +279,7 @@ state 24
 	Sids : Sid . COMMA Sids  (11)
 	Sids : Sid .  (12)
 
-	COMMA  shift 37
+	COMMA  shift 38
 	RPAR  reduce 12
 	SEMICOLON  reduce 12
 
@@ -292,17 +297,17 @@ state 26
 
 
 state 27
-	Exp : ID LPAR . Exps RPAR  (23)
-	Exps : .  (25)
+	Exp : ID LPAR . Exps RPAR  (24)
+	Exps : .  (26)
 
 	ID  shift 16
 	LPAR  shift 18
 	NUM  shift 19
-	RPAR  reduce 25
+	RPAR  reduce 26
 
-	Exp  goto 38
-	Exps  goto 39
-	Exps1  goto 40
+	Exp  goto 39
+	Exps  goto 40
+	Exps1  goto 41
 	Lval  goto 22
 
 
@@ -315,7 +320,7 @@ state 28
 	NUM  shift 19
 	.  error
 
-	Exp  goto 41
+	Exp  goto 42
 	Lval  goto 22
 
 
@@ -323,12 +328,14 @@ state 29
 	Exp : Exp . PLUS Exp  (20)
 	Exp : Exp . MINUS Exp  (21)
 	Exp : Exp . LESS Exp  (22)
-	Exp : LPAR Exp . RPAR  (24)
+	Exp : Exp . EQUAL Exp  (23)
+	Exp : LPAR Exp . RPAR  (25)
 
-	LESS  shift 31
-	MINUS  shift 32
-	PLUS  shift 33
-	RPAR  shift 42
+	EQUAL  shift 31
+	LESS  shift 32
+	MINUS  shift 33
+	PLUS  shift 34
+	RPAR  shift 43
 	.  error
 
 
@@ -337,28 +344,18 @@ state 30
 	Exp : Exp . PLUS Exp  (20)
 	Exp : Exp . MINUS Exp  (21)
 	Exp : Exp . LESS Exp  (22)
+	Exp : Exp . EQUAL Exp  (23)
 
-	LESS  shift 31
-	MINUS  shift 32
-	PLUS  shift 33
-	SEMICOLON  shift 43
+	EQUAL  shift 31
+	LESS  shift 32
+	MINUS  shift 33
+	PLUS  shift 34
+	SEMICOLON  shift 44
 	.  error
 
 
 state 31
-	Exp : Exp LESS . Exp  (22)
-
-	ID  shift 16
-	LPAR  shift 18
-	NUM  shift 19
-	.  error
-
-	Exp  goto 44
-	Lval  goto 22
-
-
-state 32
-	Exp : Exp MINUS . Exp  (21)
+	Exp : Exp EQUAL . Exp  (23)
 
 	ID  shift 16
 	LPAR  shift 18
@@ -369,8 +366,8 @@ state 32
 	Lval  goto 22
 
 
-state 33
-	Exp : Exp PLUS . Exp  (20)
+state 32
+	Exp : Exp LESS . Exp  (22)
 
 	ID  shift 16
 	LPAR  shift 18
@@ -381,14 +378,8 @@ state 33
 	Lval  goto 22
 
 
-state 34
-	Stat : Exp SEMICOLON .  (13)
-
-	.  reduce 13
-
-
-state 35
-	Exp : Lval ASSIGN . Exp  (19)
+state 33
+	Exp : Exp MINUS . Exp  (21)
 
 	ID  shift 16
 	LPAR  shift 18
@@ -399,96 +390,150 @@ state 35
 	Lval  goto 22
 
 
+state 34
+	Exp : Exp PLUS . Exp  (20)
+
+	ID  shift 16
+	LPAR  shift 18
+	NUM  shift 19
+	.  error
+
+	Exp  goto 48
+	Lval  goto 22
+
+
+state 35
+	Stat : Exp SEMICOLON .  (13)
+
+	.  reduce 13
+
+
 state 36
+	Exp : Lval ASSIGN . Exp  (19)
+
+	ID  shift 16
+	LPAR  shift 18
+	NUM  shift 19
+	.  error
+
+	Exp  goto 49
+	Lval  goto 22
+
+
+state 37
 	FunDecs : Type Sid LPAR Decs RPAR Stat FunDecs .  (2)
 
 	.  reduce 2
 
 
-state 37
+state 38
 	Sids : Sid COMMA . Sids  (11)
 
 	ID  shift 8
 	.  error
 
 	Sid  goto 24
-	Sids  goto 48
-
-
-state 38
-	Exp : Exp . PLUS Exp  (20)
-	Exp : Exp . MINUS Exp  (21)
-	Exp : Exp . LESS Exp  (22)
-	Exps1 : Exp .  (27)
-	Exps1 : Exp . COMMA Exps  (28)
-
-	COMMA  shift 49
-	LESS  shift 31
-	MINUS  shift 32
-	PLUS  shift 33
-	RPAR  reduce 27
+	Sids  goto 50
 
 
 state 39
-	Exp : ID LPAR Exps . RPAR  (23)
+	Exp : Exp . PLUS Exp  (20)
+	Exp : Exp . MINUS Exp  (21)
+	Exp : Exp . LESS Exp  (22)
+	Exp : Exp . EQUAL Exp  (23)
+	Exps1 : Exp .  (28)
+	Exps1 : Exp . COMMA Exps  (29)
 
-	RPAR  shift 50
-	.  error
+	COMMA  shift 51
+	EQUAL  shift 31
+	LESS  shift 32
+	MINUS  shift 33
+	PLUS  shift 34
+	RPAR  reduce 28
 
 
 state 40
-	Exps : Exps1 .  (26)
+	Exp : ID LPAR Exps . RPAR  (24)
 
-	.  reduce 26
+	RPAR  shift 52
+	.  error
 
 
 state 41
+	Exps : Exps1 .  (27)
+
+	.  reduce 27
+
+
+state 42
 	Stat : IF LPAR Exp . RPAR Stat  (14)
 	Stat : IF LPAR Exp . RPAR Stat ELSE Stat  (15)
 	Exp : Exp . PLUS Exp  (20)
 	Exp : Exp . MINUS Exp  (21)
 	Exp : Exp . LESS Exp  (22)
+	Exp : Exp . EQUAL Exp  (23)
 
-	LESS  shift 31
-	MINUS  shift 32
-	PLUS  shift 33
-	RPAR  shift 51
+	EQUAL  shift 31
+	LESS  shift 32
+	MINUS  shift 33
+	PLUS  shift 34
+	RPAR  shift 53
 	.  error
 
 
-state 42
-	Exp : LPAR Exp RPAR .  (24)
-
-	.  reduce 24
-
-
 state 43
+	Exp : LPAR Exp RPAR .  (25)
+
+	.  reduce 25
+
+
+state 44
 	Stat : RETURN Exp SEMICOLON .  (16)
 
 	.  reduce 16
 
 
-state 44
+state 45
+	Exp : Exp . PLUS Exp  (20)
+	Exp : Exp . MINUS Exp  (21)
+	Exp : Exp . LESS Exp  (22)
+	Exp : Exp . EQUAL Exp  (23)
+	Exp : Exp EQUAL Exp .  (23)
+
+	MINUS  shift 33
+	PLUS  shift 34
+	COMMA  reduce 23
+	EQUAL  reduce 23
+	LESS  reduce 23
+	RPAR  reduce 23
+	SEMICOLON  reduce 23
+
+
+state 46
 	Exp : Exp . PLUS Exp  (20)
 	Exp : Exp . MINUS Exp  (21)
 	Exp : Exp . LESS Exp  (22)
 	Exp : Exp LESS Exp .  (22)
+	Exp : Exp . EQUAL Exp  (23)
 
-	MINUS  shift 32
-	PLUS  shift 33
+	MINUS  shift 33
+	PLUS  shift 34
 	COMMA  reduce 22
+	EQUAL  reduce 22
 	LESS  reduce 22
 	RPAR  reduce 22
 	SEMICOLON  reduce 22
 
 
-state 45
+state 47
 	Exp : Exp . PLUS Exp  (20)
 	Exp : Exp . MINUS Exp  (21)
 	Exp : Exp MINUS Exp .  (21)
 	Exp : Exp . LESS Exp  (22)
+	Exp : Exp . EQUAL Exp  (23)
 
 	COMMA  reduce 21
+	EQUAL  reduce 21
 	LESS  reduce 21
 	MINUS  reduce 21
 	PLUS  reduce 21
@@ -496,13 +541,15 @@ state 45
 	SEMICOLON  reduce 21
 
 
-state 46
+state 48
 	Exp : Exp . PLUS Exp  (20)
 	Exp : Exp PLUS Exp .  (20)
 	Exp : Exp . MINUS Exp  (21)
 	Exp : Exp . LESS Exp  (22)
+	Exp : Exp . EQUAL Exp  (23)
 
 	COMMA  reduce 20
+	EQUAL  reduce 20
 	LESS  reduce 20
 	MINUS  reduce 20
 	PLUS  reduce 20
@@ -510,80 +557,52 @@ state 46
 	SEMICOLON  reduce 20
 
 
-state 47
+state 49
 	Exp : Lval ASSIGN Exp .  (19)
 	Exp : Exp . PLUS Exp  (20)
 	Exp : Exp . MINUS Exp  (21)
 	Exp : Exp . LESS Exp  (22)
+	Exp : Exp . EQUAL Exp  (23)
 
-	LESS  shift 31
-	MINUS  shift 32
-	PLUS  shift 33
+	EQUAL  shift 31
+	LESS  shift 32
+	MINUS  shift 33
+	PLUS  shift 34
 	COMMA  reduce 19
 	RPAR  reduce 19
 	SEMICOLON  reduce 19
 
 
-state 48
+state 50
 	Sids : Sid COMMA Sids .  (11)
 
 	.  reduce 11
 
 
-state 49
-	Exps1 : Exp COMMA . Exps  (28)
-	Exps : .  (25)
-
-	ID  shift 16
-	LPAR  shift 18
-	NUM  shift 19
-	RPAR  reduce 25
-
-	Exp  goto 38
-	Exps  goto 52
-	Exps1  goto 40
-	Lval  goto 22
-
-
-state 50
-	Exp : ID LPAR Exps RPAR .  (23)
-
-	.  reduce 23
-
-
 state 51
-	Stat : IF LPAR Exp RPAR . Stat  (14)
-	Stat : IF LPAR Exp RPAR . Stat ELSE Stat  (15)
+	Exps1 : Exp COMMA . Exps  (29)
+	Exps : .  (26)
 
 	ID  shift 16
-	IF  shift 17
 	LPAR  shift 18
 	NUM  shift 19
-	RETURN  shift 20
-	.  error
+	RPAR  reduce 26
 
-	Exp  goto 21
+	Exp  goto 39
+	Exps  goto 54
+	Exps1  goto 41
 	Lval  goto 22
-	Stat  goto 53
 
 
 state 52
-	Exps1 : Exp COMMA Exps .  (28)
+	Exp : ID LPAR Exps RPAR .  (24)
 
-	.  reduce 28
+	.  reduce 24
 
 
 state 53
-	Stat : IF LPAR Exp RPAR Stat .  (14)
-	Stat : IF LPAR Exp RPAR Stat . ELSE Stat  (15)
-
-	ELSE  shift 54
-	EOF  reduce 14
-	INT  reduce 14
-
-
-state 54
-	Stat : IF LPAR Exp RPAR Stat ELSE . Stat  (15)
+	Stat : IF LPAR Exp RPAR . Stat  (14)
+	Stat : IF LPAR Exp RPAR . Stat ELSE Stat  (15)
 
 	ID  shift 16
 	IF  shift 17
@@ -597,11 +616,41 @@ state 54
 	Stat  goto 55
 
 
+state 54
+	Exps1 : Exp COMMA Exps .  (29)
+
+	.  reduce 29
+
+
 state 55
+	Stat : IF LPAR Exp RPAR Stat .  (14)
+	Stat : IF LPAR Exp RPAR Stat . ELSE Stat  (15)
+
+	ELSE  shift 56
+	EOF  reduce 14
+	INT  reduce 14
+
+
+state 56
+	Stat : IF LPAR Exp RPAR Stat ELSE . Stat  (15)
+
+	ID  shift 16
+	IF  shift 17
+	LPAR  shift 18
+	NUM  shift 19
+	RETURN  shift 20
+	.  error
+
+	Exp  goto 21
+	Lval  goto 22
+	Stat  goto 57
+
+
+state 57
 	Stat : IF LPAR Exp RPAR Stat ELSE Stat .  (15)
 
 	.  reduce 15
 
 
-19 terminals, 15 nonterminals
-31 grammar rules, 56 states
+20 terminals, 15 nonterminals
+32 grammar rules, 58 states

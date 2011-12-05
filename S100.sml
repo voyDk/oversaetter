@@ -23,7 +23,7 @@ struct
     | Assign of Lval * Exp * pos
     | Plus of Exp * Exp * pos
     | Minus of Exp * Exp * pos
-(*    | Equal of Exp * Exp * pos *)
+    | Equal of Exp * Exp * pos 
     | Less of Exp * Exp * pos
     | Call of string * Exp list * pos
 

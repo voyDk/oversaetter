@@ -106,14 +106,15 @@ struct
 	  val t1 = "_equal1_"^newName()
 	  val t2 = "_equal2_"^newName()
 	  val l = "_equal_branch_"^newName()
-          val (_, code1) = compileExp e1 vtable ftable t1
-          val (_, code2) = compileExp e2 vtable ftable t2
+          val code1 = compileExp e1 vtable ftable t1
+          val code2 = compileExp e2 vtable ftable t2
 	in
-	  (Type.Int, code1 @ code2 @ [Mips.LI (place,"0"),
+	  (Type.Int, code1 @ code2 @ [Mips.SLT (place,t1,t2)])
+(*	  (Type.Int, code1 @ code2 @ [Mips.LI (place,"0"),
 			   Mips.BNE(t1, t2, l),
                            Mips.LI(place,"1"),
                            Mips.LABEL l])
-	end
+*)	end
     | S100.Call (f,es,pos) =>
 	let
 	  val rTy = case lookup f ftable of
