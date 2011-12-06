@@ -43,13 +43,13 @@ rule Token = parse
   | [`0`-`9`]+          { case Int.fromString (getLexeme lexbuf) of
                                NONE   => lexerError lexbuf "Bad integer"
                              | SOME i => Parser.NUM (i, getPos lexbuf) }
-  | `'`((`\`? [`a`-`z` `A`-`Z` `0`-`9` `!` `#` `$` `%` `&` `(` `)` `*` `+` `,` `-` `.` `/` `:` `;` `<` `=` `>` `?` `@` `[` `]` ``` `^` `_` `\`` `{` `|` `}` `~` `]`]) | (`\` [`'` `"` `\`]))`'`
+  | `'`((`\`?[`a`-`z` `A`-`Z` `0`-`9` `!` `#` `$` `%` `&` `(` `)` `*` `+` `,` `-` `.` `/` `:` `;` `<` `=` `>` `?` `@` `[` `]` ``` `^` `_` `\`` `{` `|` `}` `~` `]`]) | (`\`[`'` `"` `\`]))`'`
 			{ case Char.fromCString (getLexeme lexbuf) of
-			       NONE   => lexerError lexbuf "Bad char"
+			       NONE   => lexerError lexbuf "Bad CharConst"
 			     | SOME c => Parser.CHARCONST (c, getPos lexbuf) }
-  | `"`((`\`? [`a`-`z` `A`-`Z` `0`-`9` `!` `#` `$` `%` `&` `(` `)` `*` `+` `,` `-` `.` `/` `:` `;` `<` `=` `>` `?` `@` `[` `]` `^` `_` `\`` `{` `|` `}` `~` `]`]) | (`\` [`'` `"` `\`]))`"`
+  | `"`[`a`-`z` `A`-`Z` `0`-`9` `!` `#` `$` `%` `&` `(` `)` `*` `+` `,` `-` `.` `/` `:` `;` `<` `=` `>` `?` `@` `[` `]` `^` `_` `\`` `{` `|` `}` `~` `]` `'` `"` `\`]*`"`
 			{ case String.fromCString (getLexeme lexbuf) of
-			       NONE   => lexerError lexbuf "Bad char"
+			       NONE   => lexerError lexbuf "Bad StringConst"
 			     | SOME s => Parser.STRINGCONST (s, getPos lexbuf) }
   | `*`[`a`-`z` `A`-`Z`] [`a`-`z` `A`-`Z` `0`-`9` `_`]*
                         { Parser.REF (getLexeme lexbuf, getPos lexbuf) }
