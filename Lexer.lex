@@ -52,9 +52,9 @@ rule Token = parse
 			       NONE   => lexerError lexbuf "Bad StringConst"
 			     | SOME s => Parser.STRINGCONST (s, getPos lexbuf) }
   | `*`[`a`-`z` `A`-`Z`] [`a`-`z` `A`-`Z` `0`-`9` `_`]*
-                        { Parser.REF (getLexeme lexbuf, getPos lexbuf) } (* måske skulle man lige fjerne *'en? *)
+                        { Parser.REF (getLexeme lexbuf, getPos lexbuf) }
   | [`a`-`z` `A`-`Z`] [`a`-`z` `A`-`Z` `0`-`9` `_`]*`*`
-                        { Parser.DEREF (getLexeme lexbuf, getPos lexbuf) } (* måske skulle man lige fjerne *'en? *)
+                        { Parser.DEREF (getLexeme lexbuf, getPos lexbuf) }
   | [`a`-`z` `A`-`Z`] [`a`-`z` `A`-`Z` `0`-`9` `_`]*
                         { keyword (getLexeme lexbuf,getPos lexbuf) }
   | `+`                 { Parser.PLUS (getPos lexbuf) }
