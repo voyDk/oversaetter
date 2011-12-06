@@ -6,7 +6,7 @@ struct
 
   type pos = int*int
 
-  datatype Type = Int (* | Char *)
+  datatype Type = Int | Char 
 
   fun convertType (S100.Int _)
 	= Int
@@ -33,6 +33,8 @@ struct
   fun checkExp e vtable ftable =
     case e of
       S100.NumConst _ => Int
+    | S100.CharConst _ => Char
+    | S100.StringConst _ => Char (* not yet implemented *)
     | S100.LV lv => checkLval lv vtable ftable
     | S100.Assign (lv,e1,p) =>
         let

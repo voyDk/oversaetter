@@ -43,10 +43,14 @@ rule Token = parse
   | [`0`-`9`]+          { case Int.fromString (getLexeme lexbuf) of
                                NONE   => lexerError lexbuf "Bad integer"
                              | SOME i => Parser.NUM (i, getPos lexbuf) }
-(*  | [`a`-`z` `A`-`Z`] [`a`-`z` `A`-`Z` `0`-`9` `_`]
-			{ case Char.fromString (getLexeme lexbuf) of
+  | `'`((`\`? [`a`-`z` `A`-`Z` `0`-`9` `!` `#` `$` `%` `&` `(` `)` `*` `+` `,` `-` `.` `/` `:` `;` `<` `=` `>` `?` `@` `[` `]` ``` `^` `_` `\`` `{` `|` `}` `~` `]`]) | (`\` [`'` `"` `\`]))`'`
+			{ case Char.fromCString (getLexeme lexbuf) of
 			       NONE   => lexerError lexbuf "Bad char"
-			     | SOME c => Parser.CHAR (c, getPos lexbuf) } *)
+			     | SOME c => Parser.CHARCONST (c, getPos lexbuf) }
+  | `"`((`\`? [`a`-`z` `A`-`Z` `0`-`9` `!` `#` `$` `%` `&` `(` `)` `*` `+` `,` `-` `.` `/` `:` `;` `<` `=` `>` `?` `@` `[` `]` `^` `_` `\`` `{` `|` `}` `~` `]`]) | (`\` [`'` `"` `\`]))`"`
+			{ case String.fromCString (getLexeme lexbuf) of
+			       NONE   => lexerError lexbuf "Bad char"
+			     | SOME s => Parser.STRINGCONST (s, getPos lexbuf) }
   | `*`[`a`-`z` `A`-`Z`] [`a`-`z` `A`-`Z` `0`-`9` `_`]*
                         { Parser.REF (getLexeme lexbuf, getPos lexbuf) }
   | [`a`-`z` `A`-`Z`] [`a`-`z` `A`-`Z` `0`-`9` `_`]*

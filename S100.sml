@@ -17,8 +17,8 @@ struct
 
   datatype Exp
     = NumConst of int * pos
-(*    | CharConst of char * pos *)
-(*    | StringConst of string * pos *)
+    | CharConst of char * pos 
+    | StringConst of string * pos 
     | LV of Lval
     | Assign of Lval * Exp * pos
     | Plus of Exp * Exp * pos

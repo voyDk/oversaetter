@@ -1,4 +1,5 @@
-%token <string*(int*int)> ID REF
+%token <string*(int*int)> ID REF STRINGCONST
+%token <char*(int*int)> CHARCONST
 %token <int*(int*int)> NUM
 %token <(int*int)> IF THEN ELSE INT RETURN WHILE CHAR
 %token <(int*int)> PLUS MINUS LESS ASSIGN EQUAL
@@ -78,6 +79,8 @@ Stat :	  Exp SEMICOLON	{ S100.EX $1 }
 ;
 
 Exp :	  NUM		{ S100.NumConst $1 }
+	| CHARCONST	{ S100.CharConst $1 }
+	| STRINGCONST	{ S100.StringConst $1 }
 	| Lval		{ S100.LV $1 }
 	| Lval ASSIGN Exp
 			{ S100.Assign ($1,$3,$2) }
