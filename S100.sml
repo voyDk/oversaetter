@@ -11,7 +11,7 @@ struct
 
   datatype Sid
     = Val of string * pos
-(*    | Ref of string * pos *)
+    | Ref of string * pos 
 
   type Dec = Type * Sid list
 

@@ -10,9 +10,15 @@ struct
 
   fun convertType (S100.Int _) = Int
 
-  fun getName (S100.Val (f,p)) = f
+  fun getName (S100.Val (f,p))
+	= f
+    | getName (S100.Ref (f,p))
+	= f
 
-  fun getType t (S100.Val (f,p)) = convertType t
+  fun getType t (S100.Val (f,p))
+	= convertType t
+    | getType t (S100.Ref (f,p))
+	= convertType t
 
   (* lookup function for symbol table as list of (name,value) pairs *)
   fun lookup x []
@@ -70,6 +76,11 @@ struct
         (case lookup x vtable of
 	   NONE => extend sids t ((x,t)::vtable)
 	 | SOME _ => raise Error ("Double declaration of "^x,p))
+    | extend (S100.Ref (x,p)::sids) t vtable = (* skal pege på variabel i vtable, ikke oprette en ny. *)
+        (case lookup x vtable of
+	   NONE => extend sids t ((x,t)::vtable)
+	 | SOME _ => raise Error ("Double declaration of "^x,p))
+
 
   fun checkDecs [] = []
     | checkDecs ((t,sids)::ds) =

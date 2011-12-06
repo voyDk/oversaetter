@@ -1,4 +1,4 @@
-%token <string*(int*int)> ID
+%token <string*(int*int)> ID REF
 %token <int*(int*int)> NUM
 %token <(int*int)> IF THEN ELSE INT RETURN WHILE
 %token <(int*int)> PLUS MINUS LESS ASSIGN EQUAL
@@ -51,6 +51,7 @@ Dec :	  Type Sids	{ ($1, $2) }
 ;
 
 Sid :	  ID		{ S100.Val $1 }
+	| REF		{ S100.Ref $1 }
 ;
 
 Sids :	  Sid COMMA Sids

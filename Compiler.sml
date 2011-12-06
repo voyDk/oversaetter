@@ -233,7 +233,8 @@ struct
 	       let
 		 val y = newName ()
 		 val (x,ty,loc) = (case s of
-			         S100.Val (x,p) => (x, t, x^y))
+			           S100.Val (x,p) => (x, t, x^y)
+				 | S100.Ref (x,p) => (x, t, x^y))
 		 val rname = Int.toString r
 		 val (code, vtable, stackSpace) = moveArgs1 ss t ds (r+1)
 	       in
