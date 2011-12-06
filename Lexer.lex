@@ -25,6 +25,7 @@
        | "else"         => Parser.ELSE pos
        | "while"	=> Parser.WHILE pos
        | "int"          => Parser.INT pos
+       | "char"		=> Parser.CHAR pos
        | "return"       => Parser.RETURN pos
        | _              => Parser.ID (s, pos)
 
@@ -42,6 +43,10 @@ rule Token = parse
   | [`0`-`9`]+          { case Int.fromString (getLexeme lexbuf) of
                                NONE   => lexerError lexbuf "Bad integer"
                              | SOME i => Parser.NUM (i, getPos lexbuf) }
+(*  | [`a`-`z` `A`-`Z`] [`a`-`z` `A`-`Z` `0`-`9` `_`]
+			{ case Char.fromString (getLexeme lexbuf) of
+			       NONE   => lexerError lexbuf "Bad char"
+			     | SOME c => Parser.CHAR (c, getPos lexbuf) } *)
   | `*`[`a`-`z` `A`-`Z`] [`a`-`z` `A`-`Z` `0`-`9` `_`]*
                         { Parser.REF (getLexeme lexbuf, getPos lexbuf) }
   | [`a`-`z` `A`-`Z`] [`a`-`z` `A`-`Z` `0`-`9` `_`]*

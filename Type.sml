@@ -6,9 +6,12 @@ struct
 
   type pos = int*int
 
-  datatype Type = Int
+  datatype Type = Int (* | Char *)
 
-  fun convertType (S100.Int _) = Int
+  fun convertType (S100.Int _)
+	= Int
+    | convertType (S100.Char _)
+	= Int (* skal nogen gange konverteres, andre gange give en typefejl *)
 
   fun getName (S100.Val (f,p))
 	= f
@@ -42,11 +45,15 @@ struct
     | S100.Plus (e1,e2,p) =>
         (case (checkExp e1 vtable ftable,
 	       checkExp e2 vtable ftable) of
-	   (Int, Int) => Int)
+	   (Int, Int) => Int
+(*	 | (_, _) => raise Error ("Char and * not yet implemented for Plus in Type.sml",p) *)
+)
     | S100.Minus (e1,e2,p) =>
         (case (checkExp e1 vtable ftable,
 	       checkExp e2 vtable ftable) of
-	   (Int, Int) => Int)
+	   (Int, Int) => Int
+(*	 | (_, _) => raise Error ("Char and * not yet implemented for Minus in Type.sml",p) *)
+)
     | S100.Less (e1,e2,p) =>
         if checkExp e1 vtable ftable = checkExp e2 vtable ftable
 	then Int else raise Error ("Can't compare different types",p)

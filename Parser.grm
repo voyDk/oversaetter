@@ -1,6 +1,6 @@
 %token <string*(int*int)> ID REF
 %token <int*(int*int)> NUM
-%token <(int*int)> IF THEN ELSE INT RETURN WHILE
+%token <(int*int)> IF THEN ELSE INT RETURN WHILE CHAR
 %token <(int*int)> PLUS MINUS LESS ASSIGN EQUAL
 %token <(int*int)> LPAR RPAR LBLOCK RBLOCK
 %token <(int*int)> COMMA SEMICOLON EOF
@@ -36,6 +36,7 @@ FunDecs : Type Sid LPAR Decs RPAR Stat FunDecs
 ;
 
 Type :	  INT		{ S100.Int $1 }
+	  CHAR		{ S100.Char $1 }
 ;
 
 Decs :	  Decs1 Dec	{ $1 @ [$2] }
