@@ -1,9 +1,9 @@
-%token <string*(int*int)> ID REF STRINGCONST
+%token <string*(int*int)> ID REF STRINGCONST DEREF
 %token <char*(int*int)> CHARCONST
 %token <int*(int*int)> NUM
 %token <(int*int)> IF THEN ELSE INT RETURN WHILE CHAR
 %token <(int*int)> PLUS MINUS LESS ASSIGN EQUAL
-%token <(int*int)> LPAR RPAR LBLOCK RBLOCK
+%token <(int*int)> LPAR RPAR LBLOCK RBLOCK LSQRBRACK RSQRBRACK
 %token <(int*int)> COMMA SEMICOLON EOF
 
 %right ELSE
@@ -104,4 +104,7 @@ Exps1:	  Exp		{ [$1] }
 			{ $1 :: $3 }
 
 Lval :	  ID		{ S100.Var $1 }
+	| DEREF		{ S100.Deref $1 }
+	| ID LSQRBRACK Exp RSQRBRACK
+			{ S100.Lookup (#1 $1, $3, $2) }
 ;

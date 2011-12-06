@@ -79,6 +79,8 @@ struct
         (case lookup x vtable of
 	   SOME t => t
 	 | NONE => raise Error ("Unknown variable: "^x,p))
+    | S100.Deref (x,p) => raise Error ("Deref not yet implemented in Type.sml",p)
+    | S100.Lookup (x,e,p) => raise Error ("Lookup not yet implemented in Type.sml",p)
 
   fun extend [] _ vtable = vtable
     | extend (S100.Val (x,p)::sids) t vtable =

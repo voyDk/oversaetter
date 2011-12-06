@@ -170,7 +170,8 @@ struct
         (case lookup x vtable of
 	   SOME (ty,y) => ([],ty,Reg y)
 	 | NONE => raise Error ("Unknown variable "^x,p))
-
+      | S100.Deref (x,p) => raise Error ("Lookup not yet implemented in Type.sml",p)
+      | S100.Lookup (x,e,p) => raise Error ("Lookup not yet implemented in Type.sml",p)
   fun compileStat s vtable ftable exitLabel =
     case s of
       S100.EX e => #2 (compileExp e vtable ftable "0")
