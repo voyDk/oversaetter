@@ -60,6 +60,9 @@ struct
 	    (Type.Int, Reg x) =>
 	      (Type.Int,
 	       code @ [Mips.MOVE (place,x)])
+	  | (_, Reg x) => (* not yet implemented *)
+	      (Type.Int,
+	       code @ [Mips.MOVE (place,x)])
 	end
     | S100.Assign (lval,e,p) =>
         let
@@ -69,6 +72,9 @@ struct
 	in
 	  case (ty,loc) of
 	    (Type.Int, Reg x) =>
+	      (Type.Int,
+	       code0 @ code1 @ [Mips.MOVE (x,t), Mips.MOVE (place,t)])
+	  | (_, Reg x) => (* not yet implemented *)
 	      (Type.Int,
 	       code0 @ code1 @ [Mips.MOVE (x,t), Mips.MOVE (place,t)])
 	end
@@ -83,6 +89,9 @@ struct
 	    (Type.Int, Type.Int) =>
 	      (Type.Int,
 	       code1 @ code2 @ [Mips.ADD (place,t1,t2)])
+	    | (_, _) => (* not yet implemented *)
+	      (Type.Int,
+	       code1 @ code2 @ [Mips.ADD (place,t1,t2)])
 	end
     | S100.Minus (e1,e2,pos) =>
         let
@@ -93,6 +102,9 @@ struct
 	in
 	  case (ty1,ty2) of
 	    (Type.Int, Type.Int) =>
+	      (Type.Int,
+	       code1 @ code2 @ [Mips.SUB (place,t1,t2)])
+	    | 	(_, _) => (* not yet implemented *)
 	      (Type.Int,
 	       code1 @ code2 @ [Mips.SUB (place,t1,t2)])
 	end

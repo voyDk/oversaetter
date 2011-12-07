@@ -6,7 +6,7 @@ struct
 
   type pos = int*int
 
-  datatype Type = Int | Char 
+  datatype Type = Int | Char
 
   fun convertType (S100.Int _)
 	= Int
