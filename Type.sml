@@ -10,13 +10,11 @@ struct
 
   fun convertType (S100.Int _)
 	= Int
-<<<<<<< HEAD
     | convertType (S100.Char (f,p))
         = case Int.fromString (Char.toString f) of
             NONE => Int (* raise Error ("Cannot convert char to int",p) *) 
           (* p er IKKE int*int og det skal den være. Ved ikke hvorfor det ikke virker *)
           | SOME i => Int
->>>>>>> 275e59e6a82f45dcf4328452eede1da4a39d761f
 
   fun getName (S100.Val (f,p))
 	= f
