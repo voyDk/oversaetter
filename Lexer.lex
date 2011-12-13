@@ -30,7 +30,9 @@
 
  (* removes quotes from string s *)
  (* used to correct input to Char/String.fromCString *)
- fun removeQuotes(s) = String.substring(s,1,String.size(s)-2); 
+ fun removeQuotes s = String.substring(s,1,String.size(s)-2); 
+ 
+ fun removeStar s = String.substring(s,1,String.size(s)-1);
 
 }
 
@@ -56,7 +58,7 @@ rule Token = parse
 			       NONE   => lexerError lexbuf "Bad StringConst"
 			     | SOME s => Parser.STRINGCONST (s, getPos lexbuf) }
   | `*`[`a`-`z` `A`-`Z`] [`a`-`z` `A`-`Z` `0`-`9` `_`]*
-                        { Parser.REF (getLexeme lexbuf, getPos lexbuf) }
+                        { Parser.REF (removeStar(getLexeme lexbuf), getPos lexbuf) }
   | [`a`-`z` `A`-`Z`] [`a`-`z` `A`-`Z` `0`-`9` `_`]*`*`
                         { Parser.DEREF (getLexeme lexbuf, getPos lexbuf) }
   | [`a`-`z` `A`-`Z`] [`a`-`z` `A`-`Z` `0`-`9` `_`]*
