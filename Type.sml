@@ -11,11 +11,11 @@ struct
   fun convertType (S100.Int _)
 	= Int
     | convertType (S100.Char (f,p))
-        = case Int.fromString (Char.toString f) of
+        = Int (* case Int.fromString (Char.toCString f) of
             NONE => Int (* raise Error ("Cannot convert char to int",p) *) 
           (* p er IKKE int*int og det skal den være. Ved ikke hvorfor det ikke virker *)
           | SOME i => Int
-
+*)
   fun getName (S100.Val (f,p))
 	= f
     | getName (S100.Ref (f,p))
@@ -102,7 +102,12 @@ struct
   fun checkDecs [] = []
     | checkDecs ((t,sids)::ds) =
         extend (List.rev sids) (convertType t) (checkDecs ds)
-
+(*
+  fun checkStats [] _ _ = ()
+    | checkStats (stat::stats) vtable ftable = 
+	checkStat vtable ftable;
+	checkStats stats vtable ftable)
+*)
   fun checkStat s vtable ftable =
     case s of
       S100.EX e => (checkExp e vtable ftable; ())
@@ -119,9 +124,27 @@ struct
         if checkExp e vtable ftable = Int
 	then checkStat s vtable ftable
 	else raise Error ("Condition should be integer",p)
-    | S100.Return (e,p) => ()
-    | S100.Block (ds,ss,p) =>
-	raise Error ("Block (Scope) not yet implemented in Type.sml",p)
+    | S100.Return (e,p) => (* check e return type against expected return type *)
+	let
+	    val t1 = checkExp e vtable ftable
+	    val t2 = Int (* get type of current function getType (lookup x ftable) *)
+	in
+	    if t1 = t2 then () (* return type of function eg t1 or t2 *)
+	    else raise Error("Return type mismatch",p)
+	end
+    | S100.Block (decs,stats,p) =>
+	let
+	    val vtable1 = checkDecs decs (* Checking decs and bind new names to vtable *)
+	in
+(*	    checkStats stats vtable1 ftable *)
+	    raise Error ("Block (Scope) not yet implemented in Type.sml",p)
+	end
+	    
+(*	check decs - ok
+	add decs to vtable1 - ok
+	check stats with vtable1	
+*)	
+
 
   fun checkFunDec (t,sf,decs,body,p) ftable =
         checkStat body (checkDecs decs) ftable
