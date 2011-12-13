@@ -10,11 +10,13 @@ struct
 
   fun convertType (S100.Int _)
 	= Int
+<<<<<<< HEAD
     | convertType (S100.Char (f,p))
         = case Int.fromString (Char.toString f) of
             NONE => Int (* raise Error ("Cannot convert char to int",p) *) 
           (* p er IKKE int*int og det skal den være. Ved ikke hvorfor det ikke virker *)
           | SOME i => Int
+>>>>>>> 275e59e6a82f45dcf4328452eede1da4a39d761f
 
   fun getName (S100.Val (f,p))
 	= f
@@ -32,12 +34,11 @@ struct
     | lookup x ((y,v)::table)
         = if x=y then SOME v else lookup x table
 
-
   fun checkExp e vtable ftable =
     case e of
       S100.NumConst _ => Int
     | S100.CharConst _ => Char
-    | S100.StringConst _ => Char (* not yet implemented *)
+    | S100.StringConst _ => Char (* ??? not yet implemented [Char] *)
     | S100.LV lv => checkLval lv vtable ftable
     | S100.Assign (lv,e1,p) =>
         let
@@ -51,13 +52,17 @@ struct
         (case (checkExp e1 vtable ftable,
 	       checkExp e2 vtable ftable) of
 	   (Int, Int) => Int
-	 | (_, _) => raise Error ("Char and * not yet implemented for Plus in Type.sml",p) 
+	 | (Char, Int) => Int
+         | (Int, Char) => Int
+         | (Char, Char) => Int
 )
     | S100.Minus (e1,e2,p) =>
         (case (checkExp e1 vtable ftable,
 	       checkExp e2 vtable ftable) of
 	   (Int, Int) => Int
-	 | (_, _) => raise Error ("Char and * not yet implemented for Minus in Type.sml",p) 
+	 | (Char, Int) => Int
+	 | (Int, Char) => Int
+	 | (Char, Char) => Int
 )
     | S100.Less (e1,e2,p) =>
         if checkExp e1 vtable ftable = checkExp e2 vtable ftable

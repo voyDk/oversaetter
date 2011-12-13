@@ -28,16 +28,11 @@
        | "return"       => Parser.RETURN pos
        | _              => Parser.ID (s, pos)
 
- (* removes single quotes from string s *)
- (* used to correct input to Char.fromCString *)
- fun removeSingleQuotes(s) =
-   List.hd (String.tokens (fn d => d = #"'") s)
+ (* removes quotes from string s *)
+ (* used to correct input to Char/String.fromCString *)
+ fun removeQuotes(s) = String.substring(s,1,String.size(s)-2); 
 
- (* removes double quotes from string s *)
- (* used to correct input to String.fromCString *)
- fun removeDoubleQuotes(s) = 
-   List.hd (String.tokens (fn d => d = #"\"") s)
- }
+}
 
 
 rule Token = parse
@@ -51,13 +46,13 @@ rule Token = parse
   | [`0`-`9`]+          { case Int.fromString (getLexeme lexbuf) of
                                NONE   => lexerError lexbuf "Bad integer"
                              | SOME i => Parser.NUM (i, getPos lexbuf) }
-  | `'` ((`\`?[`a`-`z` `A`-`Z` `0`-`9` `!` `#` `$` `%` `&` `(` `)` `*` `+` `,` `-` `.` `/` `:` `;` `<` `=` `>` `?` `@` `[` `]` ``` `^` `_` `\`` `{` `|` `}` `~` `]`]) | (`\`[`'` `"` `\`])) `'`
-			{ case Char.fromCString (removeSingleQuotes(getLexeme lexbuf)) of
+  | `'` ((`\`?[`a`-`z` `A`-`Z` `0`-`9` `!` `#` `$` `%` `&` `(` `)` `*` `+` `,` `-` `.` `/` `:` `;` `<` `=` `>` `?` `@` `[` `]` ``` `^` `_` `\`` `{` `|` `}` `~` `]` ` `]) | (`\`[`'` `"` `\`])) `'`
+			{ case Char.fromCString (removeQuotes(getLexeme lexbuf)) of
 			       NONE   => lexerError lexbuf "Bad CharConst"
 			     | SOME c => Parser.CHARCONST (c, getPos lexbuf) }
 
-  | `"`[`a`-`z` `A`-`Z` `0`-`9` `!` `#` `$` `%` `&` `(` `)` `*` `+` `,` `-` `.` `/` `:` `;` `<` `=` `>` `?` `@` `[` `]` `^` `_` `\`` `{` `|` `}` `~` `]` `'`]*`"`
-			{ case String.fromCString (removeDoubleQuotes(getLexeme lexbuf)) of
+  | `"`[`a`-`z` `A`-`Z` `0`-`9` `!` `#` `$` `%` `&` `(` `)` `*` `+` `,` `-` `.` `/` `:` `;` `<` `=` `>` `?` `@` `[` `]` `^` `_` `\`` `{` `|` `}` `~` `]` `'` ` `]*`"`
+			{ case String.fromCString (removeQuotes(getLexeme lexbuf)) of
 			       NONE   => lexerError lexbuf "Bad StringConst"
 			     | SOME s => Parser.STRINGCONST (s, getPos lexbuf) }
   | `*`[`a`-`z` `A`-`Z`] [`a`-`z` `A`-`Z` `0`-`9` `_`]*
