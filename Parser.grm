@@ -20,7 +20,7 @@
 %type <S100.Dec> Dec
 %type <S100.Dec list> Decs Decs1
 %type <S100.Exp> Exp
-%type <S100.Exp listr> Exps Exps1
+%type <S100.Exp list> Exps Exps1
 %type <S100.Lval> Lval
 %type <S100.Stat> Stat
 %type <S100.Stat list> Stats
