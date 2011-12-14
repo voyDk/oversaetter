@@ -6,16 +6,16 @@ struct
 
   type pos = int*int
 
-  datatype Type = Int | Char
+  datatype Type = Int | Char | IntRef | CharRef
 
   fun convertType (S100.Int _)
 	= Int
-    | convertType (S100.Char (f,p))
-        = Int (* case Int.fromString (Char.toCString f) of
-            NONE => Int (* raise Error ("Cannot convert char to int",p) *) 
+    | convertType (S100.Char (f, p))
+        = Int (* case Int.fromString (Char.toCString (f,p)) of
+            NONE => raise Error ("Cannot convert char to int",p)
           (* p er IKKE int*int og det skal den være. Ved ikke hvorfor det ikke virker *)
-          | SOME i => Int
-*)
+          | SOME i => Int*)
+
   fun getName (S100.Val (f,p))
 	= f
     | getName (S100.Ref (f,p))
@@ -50,17 +50,29 @@ struct
         (case (checkExp e1 vtable ftable,
 	       checkExp e2 vtable ftable) of
 	   (Int, Int) => Int
-	 | (Char, Int) => Int
-         | (Int, Char) => Int
-         | (Char, Char) => Int
+	 | (Int, IntRef) => IntRef
+         | (IntRef, Int) => IntRef
+         | (Int, CharRef) => CharRef
+         | (CharRef, Int) => CharRef
+	 | (IntRef, IntRef) => raise Error("Type mismatch in the assignment",p)
+	 | (CharRef, CharRef) => raise Error("Type mismatch in the assignment",p)
+	 | (IntRef, CharRef) => raise Error("Type mismatch in the assignment",p)
+	 | (CharRef, IntRef) => raise Error("Type mismatch in the assignment",p)
+	 | (_,_) => raise Error("Type mismatch in the assignment",p)
 )
     | S100.Minus (e1,e2,p) =>
         (case (checkExp e1 vtable ftable,
 	       checkExp e2 vtable ftable) of
 	   (Int, Int) => Int
-	 | (Char, Int) => Int
-	 | (Int, Char) => Int
-	 | (Char, Char) => Int
+	 | (Int, IntRef) => raise Error("Type mismatch in the assignment",p)
+	 | (Int, CharRef) => raise Error("Type mismatch in the assignment",p) 
+         | (IntRef, Int) => IntRef
+         | (CharRef, Int) => CharRef
+	 | (IntRef, IntRef) => Int
+	 | (CharRef, CharRef) => Int
+	 | (IntRef, CharRef) => raise Error("Type mismatch in the assignment",p)
+	 | (CharRef, IntRef) => raise Error("Type mismatch in the assignment",p)
+	 | (_,_) => raise Error("Type mismatch in the assignment",p)
 )
     | S100.Less (e1,e2,p) =>
         if checkExp e1 vtable ftable = checkExp e2 vtable ftable
