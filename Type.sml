@@ -24,7 +24,7 @@ struct
   fun getType t (S100.Val (f,p))
 	= convertType t
     | getType t (S100.Ref (f,p))
-	= convertType t
+	= convertType t (* muligivis lav et lookup på f og så konvertere den fundne variabel til den korrekte type *)
 
   (* lookup function for symbol table as list of (name,value) pairs *)
   fun lookup x []
@@ -59,7 +59,7 @@ struct
 	 | (IntRef, CharRef) => raise Error("Type mismatch in the assignment",p)
 	 | (CharRef, IntRef) => raise Error("Type mismatch in the assignment",p)
 	 | (_,_) => raise Error("Type mismatch in the assignment",p)
-)
+	)
     | S100.Minus (e1,e2,p) =>
         (case (checkExp e1 vtable ftable,
 	       checkExp e2 vtable ftable) of
@@ -73,7 +73,7 @@ struct
 	 | (IntRef, CharRef) => raise Error("Type mismatch in the assignment",p)
 	 | (CharRef, IntRef) => raise Error("Type mismatch in the assignment",p)
 	 | (_,_) => raise Error("Type mismatch in the assignment",p)
-)
+	)
     | S100.Less (e1,e2,p) =>
         if checkExp e1 vtable ftable = checkExp e2 vtable ftable
 	then Int else raise Error ("Can't compare different types",p)
@@ -97,7 +97,10 @@ struct
         (case lookup x vtable of
 	   SOME t => t
 	 | NONE => raise Error ("Unknown variable: "^x,p))
-    | S100.Deref (x,p) => raise Error ("Deref not yet implemented in Type.sml",p)
+    | S100.Deref (x,p) =>
+	(case lookup x vtable of
+	     SOME t => t
+	   | NONE => raise Error("Unknown variable: "^x,p))
     | S100.Lookup (x,e,p) => raise Error ("Lookup not yet implemented in Type.sml",p)
 
   fun extend [] _ vtable = vtable
@@ -176,7 +179,12 @@ struct
   fun checkProg fs =
     let
       val ftable = getFuns fs [("getint",([],Int)),
-			       ("putint",([Int],Int))]
+			       ("putint",([Int],Int)),
+(*			       ("getstring",(Char,Int))  ind: int, ud string *)
+(*			       ("putstring",([Int],Int)) ind: string, ud: string *)
+			       ("walloc",([Int], IntRef)), (* ind: int, ud: intref *)
+			       ("balloc",([Int], CharRef)) (* ind: int, ud charref *)
+			      ]
     in
       List.app (fn f => checkFunDec f ftable) fs;
       case lookup "main" ftable of
