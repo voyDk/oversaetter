@@ -23,8 +23,10 @@ struct
 
   fun getType t (S100.Val (f,p))
 	= convertType t
-    | getType t (S100.Ref (f,p))
-	= convertType t (* muligivis lav et lookup på f og så konvertere den fundne variabel til den korrekte type *)
+    | getType (S100.Int _) (S100.Ref (f,p))
+	= IntRef (* convertType ? *)
+    | getType (S100.Char _) (S100.Ref (f,p))
+	= CharRef (* convertType ? *)
 
   (* lookup function for symbol table as list of (name,value) pairs *)
   fun lookup x []
