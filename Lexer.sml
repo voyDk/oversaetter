@@ -32,7 +32,9 @@ local open Obj Lexing in
 
  (* removes quotes from string s *)
  (* used to correct input to Char/String.fromCString *)
- fun removeQuotes(s) = String.substring(s,1,String.size(s)-2); 
+ fun removeQuotes s = String.substring(s,1,String.size(s)-2); 
+ 
+ fun removeStar s = String.substring(s,1,String.size(s)-1);
 
 
 fun action_23 lexbuf = (
@@ -70,7 +72,7 @@ and action_8 lexbuf = (
 and action_7 lexbuf = (
  Parser.DEREF (getLexeme lexbuf, getPos lexbuf) )
 and action_6 lexbuf = (
- Parser.REF (getLexeme lexbuf, getPos lexbuf) )
+ Parser.REF (removeStar(getLexeme lexbuf), getPos lexbuf) )
 and action_5 lexbuf = (
  case String.fromCString (removeQuotes(getLexeme lexbuf)) of
 			       NONE   => lexerError lexbuf "Bad StringConst"
