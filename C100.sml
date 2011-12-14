@@ -16,14 +16,17 @@ struct
         let
           val pgm = Parser.Prog Lexer.Token lexbuf
 	  val () = Type.checkProg pgm
-          val code = Compiler.compile pgm
+          (* val code = Compiler.compile pgm *)
         in 
+          ()
+(*
           let
             val outfile = TextIO.openOut (filename ^ ".asm")
           in
-            (TextIO.output (outfile, Mips.pp_mips_list code);
+             (TextIO.output (outfile, Mips.pp_mips_list code); 
 	     TextIO.closeOut outfile)
           end
+*)
         end
           handle Parsing.yyexit ob => errorMess "Parser-exit\n"
                | Parsing.ParseError ob =>
