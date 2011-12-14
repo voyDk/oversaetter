@@ -10,12 +10,9 @@ struct
 
   fun convertType (S100.Int _)
 	= Int
-    | convertType (S100.Char (f, p))
-        = Int (* case Int.fromString (Char.toCString (f,p)) of
-            NONE => raise Error ("Cannot convert char to int",p)
-          (* p er IKKE int*int og det skal den være. Ved ikke hvorfor det ikke virker *)
-          | SOME i => Int*)
-
+    | convertType (S100.Char _)
+        = Char
+    
   fun getName (S100.Val (f,p))
 	= f
     | getName (S100.Ref (f,p))
@@ -52,28 +49,28 @@ struct
         (case (checkExp e1 vtable ftable,
 	       checkExp e2 vtable ftable) of
 	   (Int, Int) => Int
-	 | (Int, IntRef) => IntRef
-         | (IntRef, Int) => IntRef
+	 | (Int, IntRef)  => IntRef
+         | (IntRef, Int)  => IntRef
          | (Int, CharRef) => CharRef
          | (CharRef, Int) => CharRef
-	 | (IntRef, IntRef) => raise Error("Type mismatch in the assignment",p)
+	 | (IntRef, IntRef)   => raise Error("Type mismatch in the assignment",p)
 	 | (CharRef, CharRef) => raise Error("Type mismatch in the assignment",p)
-	 | (IntRef, CharRef) => raise Error("Type mismatch in the assignment",p)
-	 | (CharRef, IntRef) => raise Error("Type mismatch in the assignment",p)
+	 | (IntRef, CharRef)  => raise Error("Type mismatch in the assignment",p)
+	 | (CharRef, IntRef)  => raise Error("Type mismatch in the assignment",p)
 	 | (_,_) => raise Error("Type mismatch in the assignment",p)
 	)
     | S100.Minus (e1,e2,p) =>
         (case (checkExp e1 vtable ftable,
 	       checkExp e2 vtable ftable) of
 	   (Int, Int) => Int
-	 | (Int, IntRef) => raise Error("Type mismatch in the assignment",p)
+	 | (Int, IntRef)  => raise Error("Type mismatch in the assignment",p)
 	 | (Int, CharRef) => raise Error("Type mismatch in the assignment",p) 
-         | (IntRef, Int) => IntRef
+         | (IntRef, Int)  => IntRef
          | (CharRef, Int) => CharRef
-	 | (IntRef, IntRef) => Int
+	 | (IntRef, IntRef)   => Int
 	 | (CharRef, CharRef) => Int
-	 | (IntRef, CharRef) => raise Error("Type mismatch in the assignment",p)
-	 | (CharRef, IntRef) => raise Error("Type mismatch in the assignment",p)
+	 | (IntRef, CharRef)  => raise Error("Type mismatch in the assignment",p)
+	 | (CharRef, IntRef)  => raise Error("Type mismatch in the assignment",p)
 	 | (_,_) => raise Error("Type mismatch in the assignment",p)
 	)
     | S100.Less (e1,e2,p) =>
@@ -111,20 +108,25 @@ struct
 	   NONE => extend sids t ((x,t)::vtable)
 	 | SOME _ => raise Error ("Double declaration of "^x,p))
     | extend (S100.Ref (x,p)::sids) t vtable = (* skal pege på variabel i vtable, ikke oprette en ny. *)
+      case t of 
+        Char => (case lookup x vtable of
+                       NONE => (extend sids Char ((x,CharRef)::vtable))
+                     | SOME _ => raise Error ("Double declaration of "^x,p))
+      | Int  => (case lookup x vtable of
+                        NONE => (extend sids Int ((x,IntRef)::vtable))
+                      | SOME _ => raise Error ("Double declaration of "^x,p))
+      | _ => raise Error ("Invalid type specified "^x,p)
+ (*
         (case lookup x vtable of
 	   NONE => extend sids t ((x,t)::vtable)
 	 | SOME _ => raise Error ("Double declaration of "^x,p))
-
+ *)
 
   fun checkDecs [] = []
     | checkDecs ((t,sids)::ds) =
         extend (List.rev sids) (convertType t) (checkDecs ds)
-(*
-  fun checkStats [] _ _ = ()
-    | checkStats (stat::stats) vtable ftable = 
-	checkStat vtable ftable;
-	checkStats stats vtable ftable)
-*)
+
+
   fun checkStat s vtable ftable =
     case s of
       S100.EX e => (checkExp e vtable ftable; ())
@@ -153,8 +155,10 @@ struct
 	let
 	    val vtable1 = checkDecs decs (* Checking decs and bind new names to vtable *)
 	in
+            checkStats stats vtable1 ftable
+
 (*	    checkStats stats vtable1 ftable *)
-	    raise Error ("Block (Scope) not yet implemented in Type.sml",p)
+(*	    raise Error ("Block (Scope) not yet implemented in Type.sml",p) *)
 	end
 	    
 (*	check decs - ok
@@ -162,6 +166,10 @@ struct
 	check stats with vtable1	
 *)	
 
+  and checkStats [] _ _ = ()
+    | checkStats (stat::stats) vtable ftable = 
+	(checkStats stats vtable ftable; 
+         checkStat stat vtable ftable)
 
   fun checkFunDec (t,sf,decs,body,p) ftable =
         checkStat body (checkDecs decs) ftable
@@ -182,8 +190,8 @@ struct
     let
       val ftable = getFuns fs [("getint",([],Int)),
 			       ("putint",([Int],Int)),
-(*			       ("getstring",(Char,Int))  ind: int, ud string *)
-(*			       ("putstring",([Int],Int)) ind: string, ud: string *)
+			       ("getstring",([Int],CharRef)),  (* ind: int, ud string *)
+			       ("putstring",([CharRef],CharRef)), (* ind: string, ud: string *)
 			       ("walloc",([Int], IntRef)), (* ind: int, ud: intref *)
 			       ("balloc",([Int], CharRef)) (* ind: int, ud charref *)
 			      ]
