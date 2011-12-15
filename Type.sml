@@ -53,10 +53,13 @@ struct
          | (IntRef, Int)  => IntRef
          | (Int, CharRef) => CharRef
          | (CharRef, Int) => CharRef
+(* not needed, the last pattern match takes care of it *)
+(*
 	 | (IntRef, IntRef)   => raise Error("Type mismatch in the assignment",p)
 	 | (CharRef, CharRef) => raise Error("Type mismatch in the assignment",p)
 	 | (IntRef, CharRef)  => raise Error("Type mismatch in the assignment",p)
 	 | (CharRef, IntRef)  => raise Error("Type mismatch in the assignment",p)
+*)
 	 | (_,_) => raise Error("Type mismatch in the assignment",p)
 	)
     | S100.Minus (e1,e2,p) =>
@@ -107,7 +110,7 @@ struct
         (case lookup x vtable of
 	   NONE => extend sids t ((x,t)::vtable)
 	 | SOME _ => raise Error ("Double declaration of "^x,p))
-    | extend (S100.Ref (x,p)::sids) t vtable = (* skal pege på variabel i vtable, ikke oprette en ny. *)
+    | extend (S100.Ref (x,p)::sids) t vtable = 
       case t of 
         Char => (case lookup x vtable of
                        NONE => (extend sids Char ((x,CharRef)::vtable))
@@ -115,12 +118,7 @@ struct
       | Int  => (case lookup x vtable of
                         NONE => (extend sids Int ((x,IntRef)::vtable))
                       | SOME _ => raise Error ("Double declaration of "^x,p))
-      | _ => raise Error ("Invalid type specified "^x,p)
- (*
-        (case lookup x vtable of
-	   NONE => extend sids t ((x,t)::vtable)
-	 | SOME _ => raise Error ("Double declaration of "^x,p))
- *)
+      (* | _ => raise Error ("Invalid type specified "^x,p) *) (* not needed, uncomment to prevent pattern not exhaustive *)
 
   fun checkDecs [] = []
     | checkDecs ((t,sids)::ds) =
