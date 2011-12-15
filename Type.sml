@@ -8,22 +8,25 @@ struct
 
   datatype Type = Int | Char | IntRef | CharRef
 
-  fun convertType (S100.Int _)
-	= Int
-    | convertType (S100.Char _)
-        = Char
+  fun convertType (S100.Int _)  = Int
+    | convertType (S100.Char _) = Char
     
-  fun getName (S100.Val (f,p))
-	= f
-    | getName (S100.Ref (f,p))
-	= f
+  fun getName (S100.Val (f,p))	= f
+    | getName (S100.Ref (f,p))	= f
 
-  fun getType t (S100.Val (f,p))
-	= convertType t
-    | getType (S100.Int _) (S100.Ref (f,p))
-	= IntRef (* convertType ? *)
-    | getType (S100.Char _) (S100.Ref (f,p))
-	= CharRef (* convertType ? *)
+  fun valToRef Int _  = IntRef
+    | valToRef Char _ = CharRef
+    | valToRef _ p    = raise Error ("Not a ref type",p)
+
+  fun refToVal IntRef _  = Int
+    | refToVal CharRef _ = Char
+    | refToVal _ p = raise Error ("Not a val type",p)
+
+  fun flattenType Char = Int
+    | flattenType t = t
+ 
+  fun getType t (S100.Val (f,p)) = convertType t
+    | getType t (S100.Ref (f,p)) = valToRef (convertType t) p
 
   (* lookup function for symbol table as list of (name,value) pairs *)
   fun lookup x []
@@ -35,52 +38,44 @@ struct
     case e of
       S100.NumConst _ => Int
     | S100.CharConst _ => Char
-    | S100.StringConst _ => Char (* ??? not yet implemented [Char] *)
+    | S100.StringConst _ => CharRef (* Strings are null-terminated char arrays  *)
     | S100.LV lv => checkLval lv vtable ftable
     | S100.Assign (lv,e1,p) =>
         let
 	  val t1 = checkLval lv vtable ftable
 	  val t2 = checkExp e1 vtable ftable
 	in
-	  if t1=t2 then t2
-	  else raise Error ("Type mismatch in assignment",p)
+          case (flattenType t1, flattenType t2) of
+            (Int, Int)         => Int
+          | (IntRef, IntRef)   => IntRef
+          | (CharRef, CharRef) => CharRef
+          | _                  => raise Error ("Type mismatch in assignment", p)
 	end
     | S100.Plus (e1,e2,p) =>
-        (case (checkExp e1 vtable ftable,
-	       checkExp e2 vtable ftable) of
-	   (Int, Int) => Int
+        (case (flattenType (checkExp e1 vtable ftable),
+	       flattenType (checkExp e2 vtable ftable)) of
+	   (Int, Int)     => Int
 	 | (Int, IntRef)  => IntRef
          | (IntRef, Int)  => IntRef
          | (Int, CharRef) => CharRef
          | (CharRef, Int) => CharRef
-(* not needed, the last pattern match takes care of it *)
-(*
-	 | (IntRef, IntRef)   => raise Error("Type mismatch in the assignment",p)
-	 | (CharRef, CharRef) => raise Error("Type mismatch in the assignment",p)
-	 | (IntRef, CharRef)  => raise Error("Type mismatch in the assignment",p)
-	 | (CharRef, IntRef)  => raise Error("Type mismatch in the assignment",p)
-*)
-	 | (_,_) => raise Error("Type mismatch in the assignment",p)
+	 | _              => raise Error("Type mismatch in the assignment",p)
 	)
     | S100.Minus (e1,e2,p) =>
-        (case (checkExp e1 vtable ftable,
-	       checkExp e2 vtable ftable) of
+        (case (flattenType (checkExp e1 vtable ftable),
+	       flattenType (checkExp e2 vtable ftable)) of
 	   (Int, Int) => Int
-	 | (Int, IntRef)  => raise Error("Type mismatch in the assignment",p)
-	 | (Int, CharRef) => raise Error("Type mismatch in the assignment",p) 
          | (IntRef, Int)  => IntRef
          | (CharRef, Int) => CharRef
 	 | (IntRef, IntRef)   => Int
 	 | (CharRef, CharRef) => Int
-	 | (IntRef, CharRef)  => raise Error("Type mismatch in the assignment",p)
-	 | (CharRef, IntRef)  => raise Error("Type mismatch in the assignment",p)
-	 | (_,_) => raise Error("Type mismatch in the assignment",p)
+	 | _ => raise Error("Type mismatch in the assignment",p)
 	)
     | S100.Less (e1,e2,p) =>
-        if checkExp e1 vtable ftable = checkExp e2 vtable ftable
+        if flattenType (checkExp e1 vtable ftable) = flattenType (checkExp e2 vtable ftable)
 	then Int else raise Error ("Can't compare different types",p)
     | S100.Equal (e1,e2,p) =>
-        if checkExp e1 vtable ftable = checkExp e2 vtable ftable
+        if flattenType (checkExp e1 vtable ftable) = flattenType (checkExp e2 vtable ftable)
 	then Int else raise Error ("Can't compare different types",p)
     | S100.Call (f,es,p) =>
         (case lookup f ftable of
@@ -88,89 +83,91 @@ struct
 	 | SOME (parT,resultT) =>
 	     let
 	       val argT = List.map (fn e => checkExp e vtable ftable) es
+               val flattenParT = List.map flattenType parT
+               val flattenArgT = List.map flattenType argT
 	     in
-	       if parT = argT then resultT
+	       if flattenParT = flattenArgT then resultT
 	       else raise Error ("Arguments don't match declaration of "^f, p)
 	     end)
 
   and checkLval lv vtable ftable =
-    case lv of
-      S100.Var (x,p) =>
-        (case lookup x vtable of
-	   SOME t => t
-	 | NONE => raise Error ("Unknown variable: "^x,p))
-    | S100.Deref (x,p) =>
-	(case lookup x vtable of
-	     SOME t => t
-	   | NONE => raise Error("Unknown variable: "^x,p))
-    | S100.Lookup (x,e,p) => raise Error ("Lookup not yet implemented in Type.sml",p)
+      case lv of
+         S100.Var (x,p) =>
+         (case lookup x vtable of
+	    SOME t => t
+	  | NONE => raise Error ("Unknown variable: "^x,p))
+       | S100.Deref (x,p) =>
+         (case lookup x vtable of
+	    SOME t => refToVal t p
+	  | NONE => raise Error("Unknown variable: "^x,p))
+       | S100.Lookup (x,e,p) => 
+         (case lookup x vtable of
+            NONE => raise Error ("Unknown variable: "^x,p)
+          | SOME t => if flattenType (checkExp e vtable ftable) = Int
+                      then refToVal t p
+                      else raise Error ("Array index must be of type char or int",p))
+
 
   fun extend [] _ vtable = vtable
     | extend (S100.Val (x,p)::sids) t vtable =
         (case lookup x vtable of
-	   NONE => extend sids t ((x,t)::vtable)
-	 | SOME _ => raise Error ("Double declaration of "^x,p))
+	   SOME _ => raise Error ("Double declaration of "^x,p)
+         | NONE => extend sids t ((x,t)::vtable))
+
     | extend (S100.Ref (x,p)::sids) t vtable = 
-      case t of 
-        Char => (case lookup x vtable of
-                       NONE => (extend sids Char ((x,CharRef)::vtable))
-                     | SOME _ => raise Error ("Double declaration of "^x,p))
-      | Int  => (case lookup x vtable of
-                        NONE => (extend sids Int ((x,IntRef)::vtable))
-                      | SOME _ => raise Error ("Double declaration of "^x,p))
-      (* | _ => raise Error ("Invalid type specified "^x,p) *) (* not needed, uncomment to prevent pattern not exhaustive *)
+      (case lookup x vtable of
+         SOME _ => raise Error ("Double declaration of "^x,p)
+       | NONE  => extend sids t ((x, valToRef t p)::vtable))
+
 
   fun checkDecs [] = []
     | checkDecs ((t,sids)::ds) =
         extend (List.rev sids) (convertType t) (checkDecs ds)
 
-
-  fun checkStat s vtable ftable =
+  (* vi ændrer retur typen fra () til Option, så vi kan tjekke
+     retur type i checkFunDecs *)
+  fun checkStat t s vtable ftable =
     case s of
-      S100.EX e => (checkExp e vtable ftable; ())
+      S100.EX e => (checkExp e vtable ftable; NONE)
     | S100.If (e,s1,p) =>
-        if checkExp e vtable ftable = Int
-	then checkStat s1 vtable ftable
+        if flattenType (checkExp e vtable ftable) = Int
+	then (checkStat t s1 vtable ftable; NONE)
 	else raise Error ("Condition should be integer",p)
     | S100.IfElse (e,s1,s2,p) =>
-        if checkExp e vtable ftable = Int
-	then (checkStat s1 vtable ftable;
-	      checkStat s2 vtable ftable)
+        if flattenType (checkExp e vtable ftable) = Int
+	then case (checkStat t s1 vtable ftable,
+	           checkStat t s2 vtable ftable) of
+               (SOME t1, SOME t2) => SOME t1
+             | _                  => NONE
 	else raise Error ("Condition should be integer",p)
     | S100.While (e,s,p) =>
-        if checkExp e vtable ftable = Int
-	then checkStat s vtable ftable
+        if flattenType (checkExp e vtable ftable) = Int
+	then (checkStat t s vtable ftable; NONE)
 	else raise Error ("Condition should be integer",p)
-    | S100.Return (e,p) => (* check e return type against expected return type *)
+    | S100.Return (e,p) => 
 	let
 	    val t1 = checkExp e vtable ftable
-	    val t2 = Int (* get type of current function getType (lookup x ftable) *)
 	in
-	    if t1 = t2 then () (* return type of function eg t1 or t2 *)
-	    else raise Error("Return type mismatch",p)
+            if flattenType t1 = flattenType t
+            then SOME t (* Den erklæret type *)
+            else raise Error ("Return type mismatch",p)
 	end
     | S100.Block (decs,stats,p) =>
 	let
-	    val vtable1 = checkDecs decs (* Checking decs and bind new names to vtable *)
+	    val vtable1 = checkDecs decs @ vtable (* extend vtable *)
+            fun checkReturnVal (stat, returnVal) =
+                case checkStat t stat vtable1 ftable of
+                  SOME x => SOME x
+                | NONE => returnVal
 	in
-            checkStats stats vtable1 ftable
-
-(*	    checkStats stats vtable1 ftable *)
-(*	    raise Error ("Block (Scope) not yet implemented in Type.sml",p) *)
+            List.foldl checkReturnVal NONE stats 
 	end
 	    
-(*	check decs - ok
-	add decs to vtable1 - ok
-	check stats with vtable1	
-*)	
-
-  and checkStats [] _ _ = ()
-    | checkStats (stat::stats) vtable ftable = 
-	(checkStats stats vtable ftable; 
-         checkStat stat vtable ftable)
 
   fun checkFunDec (t,sf,decs,body,p) ftable =
-        checkStat body (checkDecs decs) ftable
+      case checkStat (getType t sf) body (checkDecs decs) ftable of
+        NONE => raise Error ("Missing return statement", p)
+      | _ => () (* Matcher, hvis vi har en retur værdi *)
 
   fun getFuns [] ftable = ftable
     | getFuns ((t,sf,decs,_,p)::fs) ftable =
@@ -188,10 +185,10 @@ struct
     let
       val ftable = getFuns fs [("getint",([],Int)),
 			       ("putint",([Int],Int)),
-			       ("getstring",([Int],CharRef)),  (* ind: int, ud string *)
-			       ("putstring",([CharRef],CharRef)), (* ind: string, ud: string *)
-			       ("walloc",([Int], IntRef)), (* ind: int, ud: intref *)
-			       ("balloc",([Int], CharRef)) (* ind: int, ud charref *)
+			       ("getstring",([Int],CharRef)),  
+			       ("putstring",([CharRef],CharRef)), 
+			       ("walloc",([Int], IntRef)), 
+			       ("balloc",([Int], CharRef)) 
 			      ]
     in
       List.app (fn f => checkFunDec f ftable) fs;
