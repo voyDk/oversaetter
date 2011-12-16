@@ -49,7 +49,13 @@ struct
 	   [Mips.LUI (place, makeConst (n div 65536)),
 	   Mips.ORI (place, place, makeConst (n mod 65536))])
     | S100.CharConst (c,pos) =>
-	raise Error ("CharConst not yet implemented in Compiler.sml",pos)	
+	 (Type.Char,
+	  [Mips.LI (place, Char.toString c)])
+(*
+henter char ind i register - 32 bit - skal være 8 bit
+brug LB istedet (load byte)
+LB of string*string*string   (* lb rd,i(rs) kodes som LB (rd,rs,i) *)
+*)
     | S100.StringConst (c,pos) =>
 	raise Error ("StringConst not yet implemented in Compiler.sml",pos)	
     | S100.LV lval =>
@@ -60,9 +66,15 @@ struct
 	    (Type.Int, Reg x) =>
 	      (Type.Int,
 	       code @ [Mips.MOVE (place,x)])
-	  | (_, Reg x) => (* not yet implemented *)
-	      (Type.Int,
-	       code @ [Mips.MOVE (place,x)])
+	  | (Type.Char, Reg x) =>
+	      (Type.Char,
+	       code @ [Mips.LB (place,SP,"0")])
+	  | (Type.IntRef, Reg x) =>
+	      (Type.IntRef,
+	       code @ [Mips.LW (place, SP, "0")])
+	  | (Type.CharRef, Reg x) =>
+	      (Type.CharRef,
+	       code @ [Mips.LB (place, SP, "0")])
 	end
     | S100.Assign (lval,e,p) =>
         let
@@ -74,7 +86,13 @@ struct
 	    (Type.Int, Reg x) =>
 	      (Type.Int,
 	       code0 @ code1 @ [Mips.MOVE (x,t), Mips.MOVE (place,t)])
-	  | (_, Reg x) => (* not yet implemented *)
+	  | (Type.Char, Reg x) => (* not yet implemented *)
+	      (Type.Int,
+	       code0 @ code1 @ [Mips.MOVE (x,t), Mips.MOVE (place,t)])
+	  | (Type.IntRef, Reg x) => (* not yet implemented *)
+	      (Type.Int,
+	       code0 @ code1 @ [Mips.MOVE (x,t), Mips.MOVE (place,t)])
+	  | (Type.CharRef, Reg x) => (* not yet implemented *)
 	      (Type.Int,
 	       code0 @ code1 @ [Mips.MOVE (x,t), Mips.MOVE (place,t)])
 	end
@@ -89,7 +107,15 @@ struct
 	    (Type.Int, Type.Int) =>
 	      (Type.Int,
 	       code1 @ code2 @ [Mips.ADD (place,t1,t2)])
-	    | (_, _) => (* not yet implemented *)
+(*	    |(Type.Int, Type.IntRef) =>
+	      (Type.Int, [])
+	    |(Type.Int, Type.IntRef) =>
+	      (Type.Int, [])
+	    |(Type.Int, Type.CharRef) =>
+	      (Type.Int, [])
+	    |(Type.CharRef, Type.Int) =>
+	      (Type.Int, [])
+*)	    | (_, _) => (* not yet implemented *)
 	      (Type.Int,
 	       code1 @ code2 @ [Mips.ADD (place,t1,t2)])
 	end
