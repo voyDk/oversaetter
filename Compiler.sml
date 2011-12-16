@@ -66,13 +66,13 @@ LB of string*string*string   (* lb rd,i(rs) kodes som LB (rd,rs,i) *)
 	    (Type.Int, Reg x) =>
 	      (Type.Int,
 	       code @ [Mips.MOVE (place,x)])
-	  | (Type.Char, Reg x) =>
+	  | (Type.Char, Reg x) => (* flyt 8 bit (XOR eller noget og så MOVE) fra x til place *)
 	      (Type.Char,
 	       code @ [Mips.LB (place,SP,"0")])
 	  | (Type.IntRef, Reg x) =>
-	      (Type.IntRef,
+	      (Type.IntRef,(* load 32 bit (LW) fra stak plads x *)
 	       code @ [Mips.LW (place, SP, "0")])
-	  | (Type.CharRef, Reg x) =>
+	  | (Type.CharRef, Reg x) => (* load 8 bit (LB) fra stak plads x *)
 	      (Type.CharRef,
 	       code @ [Mips.LB (place, SP, "0")])
 	end
