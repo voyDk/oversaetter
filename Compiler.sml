@@ -49,17 +49,9 @@ struct
 	   [Mips.LUI (place, makeConst (n div 65536)),
 	   Mips.ORI (place, place, makeConst (n mod 65536))])
     | S100.CharConst (c,pos) =>
-      let
-	val t1 = "_charConst_"^newName()
-      in
-        (Type.Char, [Mips.LABEL t1, Mips.ASCIIZ (Char.toString c)])
-      end
+	raise Error ("CharConst not yet implemented in Compiler.sml",pos)	
     | S100.StringConst (c,pos) =>
-      let
-        val t1 = "_stringConst_"^newName()
-      in
-        (Type.CharRef, [Mips.LABEL t1, Mips.ASCIIZ c])
-      end
+	raise Error ("StringConst not yet implemented in Compiler.sml",pos)	
     | S100.LV lval =>
         let
 	  val (code,ty,loc) = compileLval lval vtable ftable
