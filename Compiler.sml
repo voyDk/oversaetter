@@ -49,7 +49,7 @@ struct
 	   [Mips.LUI (place, makeConst (n div 65536)),
 	   Mips.ORI (place, place, makeConst (n mod 65536))])
     | S100.CharConst (c,pos) =>
-        raise Error (*CharConst not yet implemented in Compiler.sml",pos)
+        raise Error ("CharConst not yet implemented in Compiler.sml",pos)
     | S100.StringConst (c,pos) =>
       let
         val t1 = "_stringConst_"^newName()
