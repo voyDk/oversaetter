@@ -36,7 +36,8 @@ struct
   val maxCaller = 15   (* highest caller-saves register *)
   val maxReg = 24      (* highest allocatable register *)
 
-  datatype Location = Reg of string (* value is in register *)
+  datatype Location = Reg of string (* value is in register *) |
+                      Addr of string (* value is at address *) (* not sure *)
 
   (* compile expression *)
   fun compileExp e vtable ftable place =
@@ -186,8 +187,25 @@ struct
         (case lookup x vtable of
 	   SOME (ty,y) => ([],ty,Reg y)
 	 | NONE => raise Error ("Unknown variable "^x,p))
-      | S100.Deref (x,p) => raise Error ("Lookup not yet implemented in Type.sml",p)
-      | S100.Lookup (x,e,p) => raise Error ("Lookup not yet implemented in Type.sml",p)
+      | S100.Deref (x,p) => 
+         (* not sure if this is correct *)
+         (case lookup x vtable of
+            SOME (ty,y) => ([],ty,Reg y)
+          | NONE => raise Error ("Unknown variable "^x,p))            
+         (* raise Error ("Lookup not yet implemented in Type.sml",p)*)
+      | S100.Lookup (x,e,p) => 
+         (* not sure about this code *)
+(*
+         let
+             val t = "_exp_"^newName()
+             val (_,code0) = compileExp e vtable ftable t
+         in
+             (case lookup x vtable of
+                SOME (ty,y) => (code0,ty,y+(Int.fromString t))
+              | NONE => raise Error ("Unknown variable"^x,p))
+         end
+*)           
+         raise Error ("Lookup not yet implemented in Type.sml",p) 
   fun compileStat s vtable ftable exitLabel =
     case s of
       S100.EX e => #2 (compileExp e vtable ftable "0")
@@ -316,9 +334,9 @@ struct
 	 Mips.SW ("2",SP,"0"),    (* save used registers *)
 	 Mips.SW ("4",SP,"4"),
 	 Mips.MOVE ("4","2"),
-	 Mips.LI ("2","1"),       (* write_int syscall *)
+	 Mips.LI ("2","1"),       (* print_int syscall *)
 	 Mips.SYSCALL,
-	 Mips.LI ("2","4"),       (* writestring syscall *)
+	 Mips.LI ("2","4"),       (* print_string syscall *)
 	 Mips.LA("4","_cr_"),
 	 Mips.SYSCALL,            (* write CR *)
 	 Mips.LW ("2",SP,"0"),    (* reload used registers *)
