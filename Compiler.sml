@@ -231,7 +231,15 @@ struct
 	  @ [Mips.J l2, Mips.LABEL l1] @ code2 @ [Mips.LABEL l2]
 	end
     | S100.While (e,s,p) =>
-	raise Error ("While not yet implemented in Compiler.sml",p)
+      let 
+        val t = "_while_"^newName()
+        val l1 = "_endwhile_"^newName()
+        val (_,code0) = compileExp e vtable ftable t
+        val code1 = compileStat s vtable ftable exitLabel
+      in
+        [Mips.LABEL t] @ code0 @ [Mips.BEQ (t,"0",l1)] 
+        @ code1 @ [Mips.J t, Mips.LABEL l1]
+      end
     | S100.Return (e,p) =>
         let
 	  val t = "_return_"^newName()
