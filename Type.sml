@@ -12,7 +12,17 @@ struct
       = Int
     | convertType (S100.Char _) 
       = Char
-    
+ 
+  fun convertS100Type (S100.Int _)
+      = Int
+    | convertS100Type (S100.Char _)
+      = Char
+  
+  fun convertTypeType Int p
+      = S100.Int p
+    | convertTypeType Char p
+      = S100.Char p
+
   fun getName (S100.Val (f,p))	
       = f
     | getName (S100.Ref (f,p))	

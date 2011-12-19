@@ -1,0 +1,10 @@
+int main() {
+  int *a;
+  int h;
+ 
+  h = 42;
+  
+  a[0] = h; 
+
+  return h; 
+}

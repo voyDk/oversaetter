@@ -11,6 +11,7 @@ sig
 		          -> (string * (Type list * Type)) list
 
   val convertType : S100.Type -> Type
+  val convertTypeType : Type -> int*int -> S100.Type 		
   val getType : S100.Type -> S100.Sid -> Type
   val getName : S100.Sid -> string
 

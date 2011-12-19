@@ -37,7 +37,7 @@ struct
   val maxReg = 24      (* highest allocatable register *)
 
   datatype Location = Reg of string (* value is in register *) |
-                      Addr of string (* value is at address *) (* not sure *)
+                      Addr of string (* value is at address *)
 
   (* compile expression *)
   fun compileExp e vtable ftable place =
@@ -65,9 +65,21 @@ struct
 	    (Type.Int, Reg x) =>
 	      (Type.Int,
 	       code @ [Mips.MOVE (place,x)])
-	  | (_, Reg x) => (* not yet implemented *)
-	      (Type.Int,
-	       code @ [Mips.MOVE (place,x)])
+	  | (Type.Char, Reg x) =>
+              (Type.Char, 
+               code @ [Mips.MOVE (place,x)])
+          | (Type.IntRef, Addr x) =>
+              (Type.Int,
+               code @ [Mips.LW (place,x,makeConst 0)])
+          | (Type.CharRef, Addr x) =>
+              (Type.Char,
+               code @ [Mips.LB (place,x,makeConst 0)])
+          | (_, Reg x) =>
+              (Type.Int,
+               code @ [Mips.MOVE (place,x)])
+          | (_, Addr x) =>
+              (Type.Int,
+               code @ [Mips.LW (place,x,makeConst 0)])
 	end
     | S100.Assign (lval,e,p) =>
         let
@@ -79,9 +91,16 @@ struct
 	    (Type.Int, Reg x) =>
 	      (Type.Int,
 	       code0 @ code1 @ [Mips.MOVE (x,t), Mips.MOVE (place,t)])
-	  | (_, Reg x) => (* not yet implemented *)
-	      (Type.Int,
-	       code0 @ code1 @ [Mips.MOVE (x,t), Mips.MOVE (place,t)])
+          | (Type.Char, Reg x) =>
+              (Type.Int,
+               code0 @ code1 @ [Mips.MOVE (x,t), Mips.MOVE (place,t)])
+          | (Type.IntRef, Addr x) =>
+              (Type.Int,
+               code0 @ code1 @ [Mips.LW (x,t,makeConst 0), Mips.MOVE (place, t)])
+          | (Type.CharRef, Addr x) =>
+              (Type.Char,
+               code0 @ code1 @ [Mips.LB (x,t,makeConst 0), Mips.MOVE (place, t)])
+          | _ => raise Error ("Unknown assignment type thingie",p)
 	end
     | S100.Plus (e1,e2,pos) =>
         let
@@ -188,25 +207,30 @@ struct
 	   SOME (ty,y) => ([],ty,Reg y)
 	 | NONE => raise Error ("Unknown variable "^x,p))
       | S100.Deref (x,p) => 
-         (* not sure if this is correct *)
          (case lookup x vtable of
-            SOME (ty,y) => ([],ty,Reg y)
+            SOME (ty,y) => ([],ty,Addr y)
           | NONE => raise Error ("Unknown variable "^x,p))            
-         (* raise Error ("Lookup not yet implemented in Type.sml",p)*)
       | S100.Lookup (x,e,p) => 
-         (* not sure about this code *)
-(*
          let
              val t = "_exp_"^newName()
+             val t2 = "_offset_"^newName()
+             val t3 = "_a_"^newName()
              val (_,code0) = compileExp e vtable ftable t
          in
              (case lookup x vtable of
-                SOME (ty,y) => (code0,ty,y+(Int.fromString t))
+                SOME (ty,y) => (code0 @ [Mips.ADD (t3,t2,y), Mips.LW (t,t3,"0")],ty,Addr t2)
               | NONE => raise Error ("Unknown variable"^x,p))
          end
-*)           
-         raise Error ("Lookup not yet implemented in Type.sml",p) 
-  fun compileStat s vtable ftable exitLabel =
+
+  fun compileStats [] vtable ftable exitLabel = []
+    |   compileStats (s::ss) vtable ftable exitLabel = 
+        let
+          val codeS = compileStat s vtable ftable exitLabel
+          val codeSS = compileStats ss vtable ftable exitLabel
+        in
+          codeS @ codeSS
+        end
+  and compileStat s vtable ftable exitLabel =
     case s of
       S100.EX e => #2 (compileExp e vtable ftable "0")
     | S100.If (e,s1,p) =>
@@ -248,7 +272,41 @@ struct
 	  code0 @ [Mips.MOVE ("2",t), Mips.J exitLabel]
 	end
     | S100.Block (ds,ss,p) =>
-	raise Error ("Block (scope) not yet implemented in Compiler.sml",p)
+      let
+	fun moveArgs [] r = ([], [], 0)
+	  | moveArgs ((t,ss)::ds) r =
+	    moveArgs1 ss (Type.convertType t) ds r
+	and moveArgs1 [] t ds r = moveArgs ds r
+	  | moveArgs1 (s::ss) t ds r =
+	    let
+	      val y = newName ()
+	      val (x,ty,loc) = (case s of
+			          S100.Val (x,p) => (x, t, x^y)
+				| S100.Ref (x,p) => (case (Type.convertTypeType t p) of 
+                                                       S100.Int _ => (x, Type.IntRef, x^y)
+                                                     | S100.Char _ => (x, Type.CharRef, x^y)))
+	      val rname = Int.toString r
+	      val (code, vtable, stackSpace) = moveArgs1 ss t ds (r+1)
+	    in
+	      if r<=maxCaller then
+		(Mips.MOVE (loc, rname) :: code,
+		 (x,(ty,loc)) :: vtable,
+		 stackSpace)
+	      else
+		(Mips.LW (loc, FP, makeConst stackSpace) :: code,
+		 (x,(ty,loc)) :: vtable,
+		 stackSpace + 4)
+	    end
+ 	val (parcode,vtable1,stackParams) (* move parameters to arguments *)
+          = moveArgs ds 2
+        val t1 = newName();
+      in
+        [Mips.LABEL ("_block_begin_" ^ t1)] @
+        compileStats ss (vtable1 @ vtable) ftable ("_block_exit_" ^ t1)
+        @ [Mips.LABEL ("_block_exit_" ^ t1)] 
+      end
+      
+      
 
   (* code for saving and restoring callee-saves registers *)
   fun stackSave currentReg maxReg savecode restorecode offset =
