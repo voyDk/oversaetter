@@ -333,6 +333,7 @@ struct
               | SOME (Type.CharRef,y) => (code0 @
                                           [Mips.ADD (t3,t,y),
                                            Mips.LW (t4,t3,"0")],Type.CharRef,Addr t4)
+              | SOME (_,_) => raise Error ("Unknown type "^x,p)
               | NONE => raise Error ("Unknown variable "^x,p))
          end
 
