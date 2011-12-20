@@ -395,6 +395,9 @@ struct
 	  code0 @ [Mips.MOVE ("2",t), Mips.J exitLabel]
 	end
     | S100.Block (ds,ss,p) => (* *)
+	(*
+		Som første del af CompileFun
+	*)
       let
 	fun moveArgs [] r = ([], [], 0)
 	  | moveArgs ((t,ss)::ds) r =
@@ -403,9 +406,6 @@ struct
 	  | moveArgs1 (s::ss) t ds r =
 	    let
 	      val y = newName ()
-	(*
-		
-	*)
 	      val (x,ty,loc) = (case s of
 			          S100.Val (x,p) => (x, t, x^y)
 				| S100.Ref (x,p) => (case (Type.convertTypeType t p) of 
@@ -427,6 +427,12 @@ struct
           = moveArgs ds 2
         val t1 = newName();
       in
+	(*
+		Opretter en blok (blok start label)
+		Tilføjer decs (ds) til midlertidig vtable
+		Compilerer Stats (ss) med den midlertidige vtable
+		Slutter blok (blok slut label)
+	*)
         [Mips.LABEL ("_block_begin_" ^ t1)] @
         compileStats ss (vtable1 @ vtable) ftable ("_block_exit_" ^ t1)
         @ [Mips.LABEL ("_block_exit_" ^ t1)] 
@@ -463,16 +469,16 @@ struct
 	    | moveArgs1 (s::ss) t ds r =
 	       let
 		 val y = newName ()
-(*		 val (x,ty,loc) = (case s of
-			           S100.Val (x,p) => (x, t, x^y)
-				 | S100.Ref (x,p) => (x, t, x^y))
-*)
+		(*
+			Udvidet således at der kendes forskel på Int og Ref
+
+			S100.Ref	: Konverterer Type -> S100 type
+		*)
 	         val (x,ty,loc) = (case s of
 			            S100.Val (x,p) => (x, t, x^y)
 				  | S100.Ref (x,p) => (case (Type.convertTypeType t p) of 
                                                        S100.Int _ => (x, Type.IntRef, x^y)
                                                      | S100.Char _ => (x, Type.CharRef, x^y)))
-
 		 val rname = Int.toString r
 		 val (code, vtable, stackSpace) = moveArgs1 ss t ds (r+1)
 	       in
