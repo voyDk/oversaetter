@@ -413,7 +413,7 @@ struct
       let
 	fun moveArgs [] r = ([], [], 0)
 	  | moveArgs ((t,ss)::ds) r =
-	    moveArgs1 ss (Type.convertType t) ds r
+	    moveArgs1 ss (Type.convertS100Type t) ds r
 	and moveArgs1 [] t ds r = moveArgs ds r
 	  | moveArgs1 (s::ss) t ds r =
 	    let
@@ -476,7 +476,7 @@ struct
 	  val rty = Type.getType typ sf
 	  fun moveArgs [] r = ([], [], 0)
 	    | moveArgs ((t,ss)::ds) r =
-	        moveArgs1 ss (Type.convertType t) ds r
+	        moveArgs1 ss (Type.convertS100Type t) ds r
 	  and moveArgs1 [] t ds r = moveArgs ds r
 	    | moveArgs1 (s::ss) t ds r =
 	       let
@@ -570,13 +570,13 @@ struct
 	 Mips.SYSCALL,
 	 Mips.JR (RA,[]),
 
-         Mips.LABEL "walloc",
+         Mips.LABEL "walloc",     (* walloc function *)
          Mips.LI ("4","4"),
          Mips.LI ("2","9"),       (* sbrk service call *)
          Mips.SYSCALL,
          Mips.JR (RA,[]),
 
-         Mips.LABEL "balloc",
+         Mips.LABEL "balloc",     (* balloc function *)
          Mips.LI ("4","3"),       (* argument value *)
          Mips.MOVE ("8", "4"),    
          Mips.LABEL "_remaind_",     (* loop divides the argument by 4 *)
@@ -589,7 +589,6 @@ struct
          Mips.J "_remaind_",
          Mips.LABEL "_remaind_exit",
          Mips.SLL ("11","11","2"), 
-
          Mips.LI ("2", "9"),      (* sbrk service call *)
          Mips.SYSCALL,
          Mips.JR (RA,[]),

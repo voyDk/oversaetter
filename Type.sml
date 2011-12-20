@@ -8,11 +8,6 @@ struct
 
   datatype Type = Int | Char | IntRef | CharRef
 
-  fun convertType (S100.Int _)  
-      = Int
-    | convertType (S100.Char _) 
-      = Char
- 
   fun convertS100Type (S100.Int _)
       = Int
     | convertS100Type (S100.Char _)
@@ -48,9 +43,9 @@ struct
     | typeCast t = t
  
   fun getType t (S100.Val (f,p)) 
-      = convertType t
+      = convertS100Type t
     | getType t (S100.Ref (f,p)) 
-      = convertVal (convertType t) p
+      = convertVal (convertS100Type t) p
 
   (* lookup function for symbol table as list of (name,value) pairs *)
   fun lookup x []
@@ -146,7 +141,7 @@ struct
 
   fun checkDecs [] = []
     | checkDecs ((t,sids)::ds) =
-        extend (List.rev sids) (convertType t) (checkDecs ds)
+        extend (List.rev sids) (convertS100Type t) (checkDecs ds)
 
   (* vi ændrer retur typen fra () til Option, så vi kan tjekke
      retur type i checkFunDecs *)
