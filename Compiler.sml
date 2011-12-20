@@ -50,7 +50,7 @@ struct
 	   [Mips.LUI (place, makeConst (n div 65536)),
 	   Mips.ORI (place, place, makeConst (n mod 65536))])
     | S100.CharConst (c,pos) =>
-	  (Type.Char, [MIPS.LI (place,c)]) (* lægger char på place. *)
+	  (Type.Char, [Mips.LI (place, c)]) (* lægger char på place. *)
     | S100.StringConst (c,pos) =>
       let
         val t1 = "_stringConst_"^newName()
@@ -68,7 +68,7 @@ struct
 	(*
 		Gemmer lVal på place
 
-		Char		: som Int. Flyt værdien fra register til place
+		Char		: Som Int. Flyt værdien fra register til place
 		IntRef		: Hent word (32 bit) fra stak ind i register, place. 
 		CharRef		: Hent byte (8 bit) fra stak ind i register, place.
 		_, Reg x	: Default opførsel som Int
@@ -133,10 +133,10 @@ struct
 	in
 	(* TODO
 		(Int, Int)     => Int
-		(Int, IntRef)  => IntRef	: returnerer adresse i base (intref) + word offset (int)
-		(IntRef, Int)  => IntRef	: returnerer adresse i base (intref) + word offset (int)
-		(Int, CharRef) => CharRef	: returnerer adresse i base (charref) + byte offset (int)
-		(CharRef, Int) => CharRef	: returnerer adresse i base (charref) + byte offset (int)
+		(Int, IntRef)  => IntRef	: Returnerer adresse i base (intref) + word offset (int)
+		(IntRef, Int)  => IntRef	: Returnerer adresse i base (intref) + word offset (int)
+		(Int, CharRef) => CharRef	: Returnerer adresse i base (charref) + byte offset (int)
+		(CharRef, Int) => CharRef	: Returnerer adresse i base (charref) + byte offset (int)
 	*)
 	  case (ty1,ty2) of
 	    (Type.Int, Type.Int) =>
@@ -153,7 +153,7 @@ struct
 	       code1 @ code2 @ [])
 	    | (Type.CharRef, Type.Int) =>
 	      (Type.CharRef,
-	       code1 @ code2 @ [)])
+	       code1 @ code2 @ [])
 	    | (_, _) => 
 		raise Error ("Type mismatch in assignment", pos)
 	end
@@ -165,11 +165,11 @@ struct
           val (ty2,code2) = compileExp e2 vtable ftable t2
 	in
 	(* TODO
-		(Int, Int) => Int		: 
-		(IntRef, Int)  => IntRef	: returnerer adresse i base (intref) - word offset (int)
-		(CharRef, Int) => CharRef	: returnerer adresse i base (charref) + byte offset (int)
-		(IntRef, IntRef)   => Int	: returnerer antal words mellem intrefs
-		(CharRef, CharRef) => Int	: returnerer antal bytes mellem intrefs (word*4)
+		(Int, Int) => Int		: Pre-implementeret
+		(IntRef, Int)  => IntRef	: Returnerer adresse i base (intref) - word offset (int)
+		(CharRef, Int) => CharRef	: Returnerer adresse i base (charref) + byte offset (int)
+		(IntRef, IntRef)   => Int	: Returnerer antal words mellem intrefs
+		(CharRef, CharRef) => Int	: Returnerer antal bytes mellem intrefs (word*4)
 	*)
 	  case (ty1,ty2) of
 	    (Type.Int, Type.Int) =>
@@ -194,10 +194,29 @@ struct
         let
 	  val t1 = "_less1_"^newName()
 	  val t2 = "_less2_"^newName()
-          val (_,code1) = compileExp e1 vtable ftable t1
-          val (_,code2) = compileExp e2 vtable ftable t2
+          val (ty1,code1) = compileExp e1 vtable ftable t1
+          val (ty2,code2) = compileExp e2 vtable ftable t2
 	in
-	  (Type.Int, code1 @ code2 @ [Mips.SLT (place,t1,t2)])
+	(* TODO
+		exp1 < exp2	: Tjekker exp1 er skarpt mindre end exp2.
+				  Returnerer 1 hvis sand, ellers 0
+
+		int1, int2		: Sammenligner værdier. Returnerer 1 hvis int1 < int2
+		char1, char2		: Sammenligner værdier. Returnerer 1 hvis char1 < char2
+		intref1, intref2	: Sammenligner adresser. Returnerer 1 hvis inref1 < intref2
+		charref1, charref2	: Sammenligner adresser. Returnerer 1 hvis charref1 < charref2
+	*)
+	  case (ty1,ty2) of
+	      (Type.Int, Type.Int) =>
+		(Type.Int, code1 @ code2 @ [Mips.SLT (place,t1,t2)])
+	    | (Type.Char, Type.Char) =>
+		(Type.Int, code1 @ code2 @ [Mips.SLT (place,t1,t2)])
+	    | (Type.IntRef, Type.IntRef) =>
+		(Type.Int, code1 @ code2 @ [Mips.SLT (place,t1,t2)])
+	    | (Type.CharRef, Type.CharRef) =>
+		(Type.Int, code1 @ code2 @ [Mips.SLT (place,t1,t2)])
+	    | (_, _) => 
+		raise Error ("Type mismatch in assignment", pos)
 	end
     | S100.Equal (e1,e2,pos) =>
         let
@@ -207,10 +226,39 @@ struct
           val (_, code1) = compileExp e1 vtable ftable t1
           val (_, code2) = compileExp e2 vtable ftable t2
 	in
-	  (Type.Int, code1 @ code2 @ [Mips.LI (place,"0"),
-			   Mips.BNE(t1, t2, l),
-                           Mips.LI(place,"1"),
-                           Mips.LABEL l])
+	(* TODO
+		exp1 < exp2	: Tjekker exp1 er skarpt mindre end exp2.
+				  Returnerer 1 hvis sand, ellers 0
+
+		int1, int2		: Sammenligner værdier. Returnerer 1 hvis int1 == int2
+		char1, char2		: Sammenligner værdier. Returnerer 1 hvis char1 == char2
+		intref1, intref2	: Sammenligner adresser. Returnerer 1 hvis inref1 == intref2
+		charref1, charref2	: Sammenligner adresser. Returnerer 1 hvis charref1 == charref2
+	*)
+	  case (ty1,ty2) of
+	      (Type.Int, Type.Int) =>
+		(Type.Int, code1 @ code2 @ [Mips.LI (place,"0"),
+					    Mips.BNE(t1, t2, l),
+		                            Mips.LI(place,"1"),
+		                            Mips.LABEL l])
+	    | (Type.Char, Type.Char) =>
+		(Type.Int, code1 @ code2 @ [Mips.LI (place,"0"),
+					    Mips.BNE(t1, t2, l),
+		                            Mips.LI(place,"1"),
+		                            Mips.LABEL l])
+	    | (Type.IntRef, Type.IntRef) =>
+		(Type.Int, code1 @ code2 @ [Mips.LI (place,"0"),
+					    Mips.BNE(t1, t2, l),
+		                            Mips.LI(place,"1"),
+		                            Mips.LABEL l])
+	    | (Type.CharRef, Type.CharRef) =>
+		(Type.Int, code1 @ code2 @ [Mips.LI (place,"0"),
+					    Mips.BNE(t1, t2, l),
+		                            Mips.LI(place,"1"),
+		                            Mips.LABEL l])
+	    | (_, _) => 
+		raise Error ("Type mismatch in assignment", pos)
+
 	end
     | S100.Call (f,es,pos) =>
 	let
