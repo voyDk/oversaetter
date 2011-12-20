@@ -22,6 +22,8 @@ struct
       = S100.Int p
     | convertTypeType Char p
       = S100.Char p
+    | convertTypeType _ p
+      = raise Error ("Cannot convert type",p)
 
   fun getName (S100.Val (f,p))	
       = f
