@@ -50,7 +50,7 @@ struct
 	   [Mips.LUI (place, makeConst (n div 65536)),
 	   Mips.ORI (place, place, makeConst (n mod 65536))])
     | S100.CharConst (c,pos) =>
-	  (Type.Char, [Mips.LI (place, c)]) (* lægger char på place. *)
+	  (Type.Char, [Mips.LI (place, (Char.toString c))]) (* lægger char på place. *)
     | S100.StringConst (c,pos) =>
       let
         val t1 = "_stringConst_"^newName()
@@ -223,8 +223,8 @@ struct
 	  val t1 = "_equal1_"^newName()
 	  val t2 = "_equal2_"^newName()
 	  val l = "_equal_branch_"^newName()
-          val (_, code1) = compileExp e1 vtable ftable t1
-          val (_, code2) = compileExp e2 vtable ftable t2
+          val (ty1, code1) = compileExp e1 vtable ftable t1
+          val (ty2, code2) = compileExp e2 vtable ftable t2
 	in
 	(* TODO
 		exp1 < exp2	: Tjekker exp1 er skarpt mindre end exp2.
@@ -403,6 +403,9 @@ struct
 	  | moveArgs1 (s::ss) t ds r =
 	    let
 	      val y = newName ()
+	(*
+		
+	*)
 	      val (x,ty,loc) = (case s of
 			          S100.Val (x,p) => (x, t, x^y)
 				| S100.Ref (x,p) => (case (Type.convertTypeType t p) of 
@@ -460,9 +463,16 @@ struct
 	    | moveArgs1 (s::ss) t ds r =
 	       let
 		 val y = newName ()
-		 val (x,ty,loc) = (case s of
+(*		 val (x,ty,loc) = (case s of
 			           S100.Val (x,p) => (x, t, x^y)
 				 | S100.Ref (x,p) => (x, t, x^y))
+*)
+	         val (x,ty,loc) = (case s of
+			            S100.Val (x,p) => (x, t, x^y)
+				  | S100.Ref (x,p) => (case (Type.convertTypeType t p) of 
+                                                       S100.Int _ => (x, Type.IntRef, x^y)
+                                                     | S100.Char _ => (x, Type.CharRef, x^y)))
+
 		 val rname = Int.toString r
 		 val (code, vtable, stackSpace) = moveArgs1 ss t ds (r+1)
 	       in
