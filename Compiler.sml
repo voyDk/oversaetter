@@ -574,8 +574,19 @@ struct
          Mips.JR (RA,[]),
 
          Mips.LABEL "balloc",
-         Mips.LI ("4","4"),
-         Mips.LI ("2", "9"),
+         Mips.LI ("4","3"),       (* argument value *)
+         Mips.MOVE ("8", "4"),    
+         Mips.LABEL "_remaind_",     (* loop divides the argument by 4 *)
+         Mips.ADDI ("9", "0", "1"),  (* it is used to calculate the minimum *)                                      
+         Mips.SLT ("10", "8", "9"),  (* sized argument that is word aligned *)
+         Mips.BNE ("10", "0", "_remaind_exit"),
+         Mips.ADDI ("11","11","1"),
+         Mips.SUBI ("8", "8", "4"),
+         Mips.J "_remaind_",
+         Mips.LABEL "_remaind_exit",
+         Mips.SLL ("11","11","2"), 
+
+         Mips.LI ("2", "9"),      (* sbrk service call *)
          Mips.SYSCALL,
          Mips.JR (RA,[]),
 
