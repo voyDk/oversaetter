@@ -50,7 +50,7 @@ struct
 	   [Mips.LUI (place, makeConst (n div 65536)),
 	   Mips.ORI (place, place, makeConst (n mod 65536))])
     | S100.CharConst (c,pos) =>
-	  (Type.Char, [MIPS.LI (place,c)]) (* lægger char på place. *)
+	  (Type.Char, [Mips.LI (place,(Char.toString c))]) (* lægger char på place. *)
     | S100.StringConst (c,pos) =>
       let
         val t1 = "_stringConst_"^newName()
@@ -153,7 +153,7 @@ struct
 	       code1 @ code2 @ [])
 	    | (Type.CharRef, Type.Int) =>
 	      (Type.CharRef,
-	       code1 @ code2 @ [)])
+	       code1 @ code2 @ [])
 	    | (_, _) => 
 		raise Error ("Type mismatch in assignment", pos)
 	end
@@ -272,12 +272,20 @@ struct
          let
              val t = "_exp_"^newName()
              val t2 = "_offset_"^newName()
-             val t3 = "_a_"^newName()
+             val t3 = "_add_"^newName()
+             val t4 = "_lw_"^newName()
+
              val (_,code0) = compileExp e vtable ftable t
          in
              (case lookup x vtable of
-                SOME (ty,y) => (code0 @ [Mips.ADD (t3,t2,y), Mips.LW (t,t3,"0")],ty,Addr t2)
-              | NONE => raise Error ("Unknown variable"^x,p))
+                SOME (Type.IntRef,y) => (code0 @ 
+                                         [Mips.SLL (t2,t,"4"), 
+                                          Mips.ADD (t3,t2,y),
+                                          Mips.LW (t4,t3,"0")],Type.IntRef,Addr t4)
+              | SOME (Type.CharRef,y) => (code0 @
+                                          [Mips.ADD (t3,t,y),
+                                           Mips.LW (t4,t3,"0")],Type.CharRef,Addr t4)
+              | NONE => raise Error ("Unknown variable "^x,p))
          end
 
   fun compileStats [] vtable ftable exitLabel = []
