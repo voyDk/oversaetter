@@ -224,7 +224,7 @@ struct
           val (ty1,code1) = compileExp e1 vtable ftable t1
           val (ty2,code2) = compileExp e2 vtable ftable t2
 	in
-	(* TODO
+	(*
 		exp1 < exp2	: Tjekker exp1 er skarpt mindre end exp2.
 				  Returnerer 1 hvis sand, ellers 0
 
@@ -233,17 +233,10 @@ struct
 		intref1, intref2	: Sammenligner adresser. Returnerer 1 hvis inref1 < intref2
 		charref1, charref2	: Sammenligner adresser. Returnerer 1 hvis charref1 < charref2
 	*)
-	  case (ty1,ty2) of
-	      (Type.Int, Type.Int) =>
-		(Type.Int, code1 @ code2 @ [Mips.SLT (place,t1,t2)])
-	    | (Type.Char, Type.Char) =>
-		(Type.Int, code1 @ code2 @ [Mips.SLT (place,t1,t2)])
-	    | (Type.IntRef, Type.IntRef) =>
-		(Type.Int, code1 @ code2 @ [Mips.SLT (place,t1,t2)])
-	    | (Type.CharRef, Type.CharRef) =>
-		(Type.Int, code1 @ code2 @ [Mips.SLT (place,t1,t2)])
-	    | (_, _) => 
-		raise Error ("Type mismatch in assignment", pos)
+	  if ty1=ty2 then
+	      (Type.Int, code1 @ code2 @ [Mips.SLT (place,t1,t2)])
+	  else
+	    raise Error ("Type mismatch in assignment", pos)
 	end
     | S100.Equal (e1,e2,pos) =>
         let
@@ -253,7 +246,7 @@ struct
           val (ty1, code1) = compileExp e1 vtable ftable t1
           val (ty2, code2) = compileExp e2 vtable ftable t2
 	in
-	(* TODO
+	(*
 		exp1 < exp2	: Tjekker exp1 er skarpt mindre end exp2.
 				  Returnerer 1 hvis sand, ellers 0
 
@@ -262,30 +255,13 @@ struct
 		intref1, intref2	: Sammenligner adresser. Returnerer 1 hvis inref1 == intref2
 		charref1, charref2	: Sammenligner adresser. Returnerer 1 hvis charref1 == charref2
 	*)
-	  case (ty1,ty2) of
-	      (Type.Int, Type.Int) =>
-		(Type.Int, code1 @ code2 @ [Mips.LI (place,"0"),
-					    Mips.BNE(t1, t2, l),
-		                            Mips.LI(place,"1"),
-		                            Mips.LABEL l])
-	    | (Type.Char, Type.Char) =>
-		(Type.Int, code1 @ code2 @ [Mips.LI (place,"0"),
-					    Mips.BNE(t1, t2, l),
-		                            Mips.LI(place,"1"),
-		                            Mips.LABEL l])
-	    | (Type.IntRef, Type.IntRef) =>
-		(Type.Int, code1 @ code2 @ [Mips.LI (place,"0"),
-					    Mips.BNE(t1, t2, l),
-		                            Mips.LI(place,"1"),
-		                            Mips.LABEL l])
-	    | (Type.CharRef, Type.CharRef) =>
-		(Type.Int, code1 @ code2 @ [Mips.LI (place,"0"),
-					    Mips.BNE(t1, t2, l),
-		                            Mips.LI(place,"1"),
-		                            Mips.LABEL l])
-	    | (_, _) => 
-		raise Error ("Type mismatch in assignment", pos)
-
+	  if ty1=ty2 then
+	    (Type.Int, code1 @ code2 @ [Mips.LI (place,"0"),
+				        Mips.BNE(t1, t2, l),
+		                        Mips.LI(place,"1"),
+		                        Mips.LABEL l])
+	  else
+	    raise Error ("Type mismatch in assignment", pos)
 	end
     | S100.Call (f,es,pos) =>
 	let
