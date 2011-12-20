@@ -608,7 +608,8 @@ struct
          Mips.SLT ("10", "8", "9"),  (* sized argument that is word aligned *)
          Mips.BNE ("10", "0", "_remaind_exit"),
          Mips.ADDI ("11","11","1"),
-         Mips.SUBI ("8", "8", "4"),
+         Mips.ADDI ("12", "0", "4"),
+         Mips.SUB ("8", "8", "12"),
          Mips.J "_remaind_",
          Mips.LABEL "_remaind_exit",
          Mips.SLL ("11","11","2"), 
