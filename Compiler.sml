@@ -131,12 +131,15 @@ struct
           val (ty1,code1) = compileExp e1 vtable ftable t1
           val (ty2,code2) = compileExp e2 vtable ftable t2
 	in
-	(* TODO
+	(*
 		(Int, Int)     => Int
 		(Int, IntRef)  => IntRef	: Returnerer adresse i base (intref) + word offset (int)
-		(IntRef, Int)  => IntRef	: Returnerer adresse i base (intref) + word offset (int)
+						  Ganger offset (Int) med word længden (4)
+						  Lægger dette til adressen (t)
+		(IntRef, Int)  => IntRef	: Som ovenfor
 		(Int, CharRef) => CharRef	: Returnerer adresse i base (charref) + byte offset (int)
-		(CharRef, Int) => CharRef	: Returnerer adresse i base (charref) + byte offset (int)
+						  Lægger offset (Int) til adressen (t)
+		(CharRef, Int) => CharRef	: Som ovenfor
 	*)
 	  case (ty1,ty2) of
 	    (Type.Int, Type.Int) =>
@@ -144,16 +147,16 @@ struct
 	       code1 @ code2 @ [Mips.ADD (place,t1,t2)])
 	    | (Type.Int, Type.IntRef) =>
 	      (Type.IntRef,
-	       code1 @ code2 @ []) (* Mips.LA place, ty2(ty1) *)
+	       code1 @ code2 @ [Mips.SLL (t1,t1,"2"), Mips.ADD(place, t1, t2)])
 	    | (Type.IntRef, Type.Int) =>
 	      (Type.IntRef,
-	       code1 @ code2 @ [])
-	    | (Type.Int, Type.CharRef) => (* Mips.LB place, ty2(ty1) *)
+	       code1 @ code2 @ [Mips.SLL (t1,t1,"2"), Mips.ADD(place, t1, t2)])
+	    | (Type.Int, Type.CharRef) =>
 	      (Type.CharRef,
-	       code1 @ code2 @ [])
+	       code1 @ code2 @ [Mips.ADD (place,t1,t2)])
 	    | (Type.CharRef, Type.Int) =>
 	      (Type.CharRef,
-	       code1 @ code2 @ [])
+	       code1 @ code2 @ [Mips.ADD (place,t1,t2)])
 	    | (_, _) => 
 		raise Error ("Type mismatch in assignment", pos)
 	end
@@ -161,15 +164,26 @@ struct
         let
 	  val t1 = "_minus1_"^newName()
 	  val t2 = "_minus2_"^newName()
+	  val t3 = "_slt_"^newName()
+	  val l1 = "_noswap_"^newName()
+
           val (ty1,code1) = compileExp e1 vtable ftable t1
           val (ty2,code2) = compileExp e2 vtable ftable t2
 	in
-	(* TODO
+	(*
 		(Int, Int) => Int		: Pre-implementeret
 		(IntRef, Int)  => IntRef	: Returnerer adresse i base (intref) - word offset (int)
+						  Ganger offset (Int) med word længden (4)
+						  Trækker dette fra adressen (t)
 		(CharRef, Int) => CharRef	: Returnerer adresse i base (charref) + byte offset (int)
-		(IntRef, IntRef)   => Int	: Returnerer antal words mellem intrefs
-		(CharRef, CharRef) => Int	: Returnerer antal bytes mellem intrefs (word*4)
+						  Trækker offset (Int) fra adressen (t)
+		(IntRef1, IntRef2)   => Int	: Returnerer antal words mellem intrefs
+						  For at sikre at afstanden mellem de to words er positiv byttes de rundt hvis IntRef1 < IntRef2.
+						  Trækker Intref1 fra Intref2 og resultatet i place. Dividerer place med word længden (4).
+						  
+		(CharRef1, CharRef2) => Int	: Returnerer antal bytes mellem charrefs
+						  For at sikre at afstanden mellem de to CharRefs er positiv byttes de rundt hvis CharRef1 < CharRef2.
+						  Trækker CharRef1 fra CharRef2 og resultatet i place. Dividerer place med word længden (4).
 	*)
 	  case (ty1,ty2) of
 	    (Type.Int, Type.Int) =>
@@ -177,16 +191,29 @@ struct
 	       code1 @ code2 @ [Mips.SUB (place,t1,t2)])
 	    | (Type.IntRef, Type.Int) =>
 	      (Type.IntRef,
-	       code1 @ code2 @ [])
+	       code1 @ code2 @ [Mips.SLL (t1,t1,"2"), Mips.SUB (place,t1,t2)])
 	    | (Type.CharRef, Type.Int) =>
 	      (Type.CharRef,
-	       code1 @ code2 @ [])
+	       code1 @ code2 @ [Mips.SUB (place,t1,t2)])
 	    | (Type.IntRef, Type.IntRef) =>
-	      (Type.Int,
-	       code1 @ code2 @ [])
+		(Type.Int,
+	       	 code1 @ code2 @ [Mips.SLT (t3, t1, t2),
+				  Mips.BNE (t3, "0", l1),
+				  Mips.XOR (t1, t1, t2),
+				  Mips.XOR (t2, t1, t2),
+				  Mips.XOR (t1, t1, t2),
+				  Mips.LABEL (l1),
+				  Mips.SUB (place,t1,t2),
+				  Mips.SRA (place, place, "2")])
 	    | (Type.CharRef, Type.CharRef) =>
-	      (Type.Int,
-	       code1 @ code2 @ [])
+		(Type.Int,
+	       	 code1 @ code2 @ [Mips.SLT (t3, t1, t2),
+				  Mips.BNE (t3, "0", l1),
+				  Mips.XOR (t1, t1, t2),
+				  Mips.XOR (t2, t1, t2),
+				  Mips.XOR (t1, t1, t2),
+				  Mips.LABEL (l1),
+				  Mips.SUB (place,t1,t2)])
 	    | (_, _) => 
 		raise Error ("Type mismatch in assignment", pos)
 	end
