@@ -327,13 +327,13 @@ struct
          in
              (case lookup x vtable of
                 SOME (Type.IntRef,y) => (code0 @ 
-                                         [Mips.SLL (t2,t,"4"), 
+                                         [Mips.SLL (t2,t,"2"), 
                                           Mips.ADD (t3,t2,y),
                                           Mips.LW (t4,t3,"0")],Type.IntRef,Addr t4)
               | SOME (Type.CharRef,y) => (code0 @
                                           [Mips.ADD (t3,t,y),
                                            Mips.LW (t4,t3,"0")],Type.CharRef,Addr t4)
-              | SOME (_,_) => raise Error ("Unknown type "^x,p)
+              | SOME (_,_) => raise Error ("Invalid type "^x,p)
               | NONE => raise Error ("Unknown variable "^x,p))
          end
 
@@ -566,6 +566,18 @@ struct
 	 Mips.LI ("2","5"),       (* read_int syscall *)
 	 Mips.SYSCALL,
 	 Mips.JR (RA,[]),
+
+         Mips.LABEL "walloc",
+         Mips.LI ("4","4"),
+         Mips.LI ("2","9"),       (* sbrk service call *)
+         Mips.SYSCALL,
+         Mips.JR (RA,[]),
+
+         Mips.LABEL "balloc",
+         Mips.LI ("4","4"),
+         Mips.LI ("2", "9"),
+         Mips.SYSCALL,
+         Mips.JR (RA,[]),
 
 	 Mips.DATA "",
 	 Mips.ALIGN "2",
