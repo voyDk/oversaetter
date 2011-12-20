@@ -367,6 +367,16 @@ struct
         val (_,code0) = compileExp e vtable ftable t
         val code1 = compileStat s vtable ftable exitLabel
       in
+	(*
+		while exp do stats
+		
+		Indsæt start label
+		Indsæt kode fra exp
+		Tjek om exp (t) == 0 (false), hvis ja - hop til slut
+		Ellers
+			Kode for stats
+			Hop til start
+	*)
         [Mips.LABEL t] @ code0 @ [Mips.BEQ (t,"0",l1)] 
         @ code1 @ [Mips.J t, Mips.LABEL l1]
       end
@@ -375,9 +385,16 @@ struct
 	  val t = "_return_"^newName()
 	  val (_,code0) = compileExp e vtable ftable t
 	in
+	(*
+		return exp
+
+		Evaluer exp (giver returværdi, t)
+		Læg returværdi, t, i register 2 (v0)
+		Hop til slut	
+	*)
 	  code0 @ [Mips.MOVE ("2",t), Mips.J exitLabel]
 	end
-    | S100.Block (ds,ss,p) =>
+    | S100.Block (ds,ss,p) => (* *)
       let
 	fun moveArgs [] r = ([], [], 0)
 	  | moveArgs ((t,ss)::ds) r =
