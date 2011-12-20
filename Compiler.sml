@@ -50,17 +50,30 @@ struct
 	   [Mips.LUI (place, makeConst (n div 65536)),
 	   Mips.ORI (place, place, makeConst (n mod 65536))])
     | S100.CharConst (c,pos) =>
-        raise Error ("CharConst not yet implemented in Compiler.sml",pos)
+	  (Type.Char, [MIPS.LI (place,c)]) (* lægger char på place. *)
     | S100.StringConst (c,pos) =>
       let
         val t1 = "_stringConst_"^newName()
       in
-        (Type.CharRef, [Mips.LABEL t1, Mips.ASCIIZ c])
+	(*
+		Gemmer string, c, på den næste tilgængelige adresse.
+		Lægger reference til adresse i place
+	*)
+        (Type.CharRef, [Mips.LA (place, t1), Mips.LABEL t1, Mips.ASCIIZ c]) 
       end
     | S100.LV lval =>
         let
 	  val (code,ty,loc) = compileLval lval vtable ftable
 	in
+	(*
+		Gemmer lVal på place
+
+		Char		: som Int. Flyt værdien fra register til place
+		IntRef		: Hent word (32 bit) fra stak ind i register, place. 
+		CharRef		: Hent byte (8 bit) fra stak ind i register, place.
+		_, Reg x	: Default opførsel som Int
+		_, Addr x	: Default opførsel som Intref
+	*)
 	  case (ty,loc) of
 	    (Type.Int, Reg x) =>
 	      (Type.Int,
@@ -87,6 +100,15 @@ struct
 	  val (code0,ty,loc) = compileLval lval vtable ftable
 	  val (_,code1) = compileExp e vtable ftable t
 	in
+	(*
+		lVal = Exp	: Sætter lVal til værdien af Exp
+
+		Char		: Lægger værdien af exp, t, ind i register x og place
+		IntRef		: Henter word (32 bit) fra stak på adresse t og lægger ind i x.
+				  Lægger værdi af t i place.
+		CharRef		: Henter byte (8 bit) fra stak på adresse t og lægger ind i x.
+				  Lægger værdi af t i place.
+	*)
 	  case (ty,loc) of
 	    (Type.Int, Reg x) =>
 	      (Type.Int,
@@ -100,7 +122,7 @@ struct
           | (Type.CharRef, Addr x) =>
               (Type.Char,
                code0 @ code1 @ [Mips.LB (x,t,makeConst 0), Mips.MOVE (place, t)])
-          | _ => raise Error ("Unknown assignment type thingie",p)
+          | _ => raise Error ("Unknown assignment type",p)
 	end
     | S100.Plus (e1,e2,pos) =>
         let
@@ -109,13 +131,31 @@ struct
           val (ty1,code1) = compileExp e1 vtable ftable t1
           val (ty2,code2) = compileExp e2 vtable ftable t2
 	in
+	(* TODO
+		(Int, Int)     => Int
+		(Int, IntRef)  => IntRef	: returnerer adresse i base (intref) + word offset (int)
+		(IntRef, Int)  => IntRef	: returnerer adresse i base (intref) + word offset (int)
+		(Int, CharRef) => CharRef	: returnerer adresse i base (charref) + byte offset (int)
+		(CharRef, Int) => CharRef	: returnerer adresse i base (charref) + byte offset (int)
+	*)
 	  case (ty1,ty2) of
 	    (Type.Int, Type.Int) =>
 	      (Type.Int,
 	       code1 @ code2 @ [Mips.ADD (place,t1,t2)])
-	    | (_, _) => (* not yet implemented *)
-	      (Type.Int,
-	       code1 @ code2 @ [Mips.ADD (place,t1,t2)])
+	    | (Type.Int, Type.IntRef) =>
+	      (Type.IntRef,
+	       code1 @ code2 @ []) (* Mips.LA place, ty2(ty1) *)
+	    | (Type.IntRef, Type.Int) =>
+	      (Type.IntRef,
+	       code1 @ code2 @ [])
+	    | (Type.Int, Type.CharRef) => (* Mips.LB place, ty2(ty1) *)
+	      (Type.CharRef,
+	       code1 @ code2 @ [])
+	    | (Type.CharRef, Type.Int) =>
+	      (Type.CharRef,
+	       code1 @ code2 @ [)])
+	    | (_, _) => 
+		raise Error ("Type mismatch in assignment", pos)
 	end
     | S100.Minus (e1,e2,pos) =>
         let
@@ -124,13 +164,31 @@ struct
           val (ty1,code1) = compileExp e1 vtable ftable t1
           val (ty2,code2) = compileExp e2 vtable ftable t2
 	in
+	(* TODO
+		(Int, Int) => Int		: 
+		(IntRef, Int)  => IntRef	: returnerer adresse i base (intref) - word offset (int)
+		(CharRef, Int) => CharRef	: returnerer adresse i base (charref) + byte offset (int)
+		(IntRef, IntRef)   => Int	: returnerer antal words mellem intrefs
+		(CharRef, CharRef) => Int	: returnerer antal bytes mellem intrefs (word*4)
+	*)
 	  case (ty1,ty2) of
 	    (Type.Int, Type.Int) =>
 	      (Type.Int,
 	       code1 @ code2 @ [Mips.SUB (place,t1,t2)])
-	    | 	(_, _) => (* not yet implemented *)
+	    | (Type.IntRef, Type.Int) =>
+	      (Type.IntRef,
+	       code1 @ code2 @ [])
+	    | (Type.CharRef, Type.Int) =>
+	      (Type.CharRef,
+	       code1 @ code2 @ [])
+	    | (Type.IntRef, Type.IntRef) =>
 	      (Type.Int,
-	       code1 @ code2 @ [Mips.SUB (place,t1,t2)])
+	       code1 @ code2 @ [])
+	    | (Type.CharRef, Type.CharRef) =>
+	      (Type.Int,
+	       code1 @ code2 @ [])
+	    | (_, _) => 
+		raise Error ("Type mismatch in assignment", pos)
 	end
     | S100.Less (e1,e2,pos) =>
         let
