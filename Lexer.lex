@@ -32,8 +32,9 @@
  (* used to correct input to Char/String.fromCString *)
  fun removeQuotes s = String.substring(s,1,String.size(s)-2); 
  
- fun removeStar s = String.substring(s,1,String.size(s)-1);
+ (*fun removeStar s = String.substring(s,1,String.size(s)-1);*)
 
+ fun removeStar s = String.implode (List.filter (fn x => not (x = #"*")) (String.explode s))
 }
 
 
@@ -60,7 +61,7 @@ rule Token = parse
   | `*`[`a`-`z` `A`-`Z`] [`a`-`z` `A`-`Z` `0`-`9` `_`]*
                         { Parser.REF (removeStar(getLexeme lexbuf), getPos lexbuf) }
   | [`a`-`z` `A`-`Z`] [`a`-`z` `A`-`Z` `0`-`9` `_`]*`*`
-                        { Parser.DEREF (getLexeme lexbuf, getPos lexbuf) }
+                        { Parser.DEREF (removeStar(getLexeme lexbuf), getPos lexbuf) }
   | [`a`-`z` `A`-`Z`] [`a`-`z` `A`-`Z` `0`-`9` `_`]*
                         { keyword (getLexeme lexbuf,getPos lexbuf) }
   | `+`                 { Parser.PLUS (getPos lexbuf) }
