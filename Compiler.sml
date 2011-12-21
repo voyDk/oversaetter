@@ -570,22 +570,29 @@ struct
 	 Mips.SYSCALL,
 	 Mips.JR (RA,[]),
 
-         Mips.LABEL "walloc",     (* walloc function *)
-         Mips.LI ("4","4"),
-         Mips.LI ("2","9"),       (* sbrk service call *)
+         Mips.LABEL "walloc",      (* walloc function *)
+         Mips.ADDI(SP,SP,"-4"),    (* allocate stack space *)
+         Mips.SW("4",SP,"0"),      (* save a0 register *)
+         Mips.MOVE ("4", "2"),     (* get argument for walloc call *)
+         Mips.SLL ("4", "4", "2"), (* make sure it gets word alligned *)
+         Mips.LI ("2","9"),        (* sbrk service call *)
          Mips.SYSCALL,
+         Mips.LW ("4",SP,"0"),     (* restore a0 register *)
+         Mips.ADDI(SP,SP,"4"),     (* restore stack pointer *)
          Mips.JR (RA,[]),
 
-         Mips.LABEL "balloc",     (* balloc function *)
-         Mips.LI ("4","3"),       (* argument value *)
-         Mips.MOVE ("8", "4"),    
-         Mips.LABEL "_remaind_",     (* loop divides the argument by 4 *)
-         Mips.ADDI ("9", "0", "1"),  (* it is used to calculate the minimum *)                                      
-         Mips.SLT ("10", "8", "9"),  (* sized argument that is word aligned *)
-         Mips.BNE ("10", "0", "_remaind_exit"),
-         Mips.ADDI ("11","11","1"),
-         Mips.ADDI ("12", "0", "4"),
-         Mips.SUB ("8", "8", "12"),
+         Mips.LABEL "balloc",        (* balloc function *)
+         Mips.ADDI(SP,SP,"-4"),      (* allocate stack space *)
+         Mips.SW("4",SP,"0"),        (* save a0 register *)
+         Mips.MOVE ("4","2"),        (* argument value *)
+         Mips.MOVE ("8", "4"),       (* word size is in register $t0 *)
+         Mips.LABEL "_remaind_",     (* loop divides the argument by word size *)
+         Mips.ADDI ("9", "0", "1"),  (* it is used to calculate the minimum word sized argument *)                                      
+         Mips.SLT ("10", "8", "9"),  (* $t3 is 1 if $t0 is < 1 and 0 otherwise *)
+         Mips.BNE ("10", "0", "_remaind_exit"), (* we exit loop if $t3 is 1 *)
+         Mips.ADDI ("11","11","1"),  (* we accumulate in register $t3 *)
+         Mips.ADDI ("12", "0", "4"), 
+         Mips.SUB ("8", "8", "12"),  (* we subtract a word from our argument *)
          Mips.J "_remaind_",
          Mips.LABEL "_remaind_exit",
          Mips.SLL ("11","11","2"), 
