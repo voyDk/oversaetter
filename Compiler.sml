@@ -199,7 +199,7 @@ struct
 		(Type.Int,
 	       	 code1 @ code2 @ [Mips.SLT (t3, t1, t2),
 				  Mips.BNE (t3, "0", l1),
-				  Mips.XOR (t1, t1, t2),
+				  Mips.XOR (t1, t1, t2), (* swap t1 og t2 *)
 				  Mips.XOR (t2, t1, t2),
 				  Mips.XOR (t1, t1, t2),
 				  Mips.LABEL (l1),
@@ -209,7 +209,7 @@ struct
 		(Type.Int,
 	       	 code1 @ code2 @ [Mips.SLT (t3, t1, t2),
 				  Mips.BNE (t3, "0", l1),
-				  Mips.XOR (t1, t1, t2),
+				  Mips.XOR (t1, t1, t2), (* swap t1 og t2 *)
 				  Mips.XOR (t2, t1, t2),
 				  Mips.XOR (t1, t1, t2),
 				  Mips.LABEL (l1),
