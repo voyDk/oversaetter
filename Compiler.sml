@@ -59,7 +59,9 @@ struct
 		Gemmer string, c, på den næste tilgængelige adresse.
 		Lægger reference til adresse i place
 	*)
-        (Type.CharRef, [Mips.LA (place, t1), Mips.LABEL t1, Mips.ASCIIZ c]) 
+        (Type.CharRef, [Mips.LA (place, t1),
+			Mips.LABEL t1,
+			Mips.ASCIIZ c]) 
       end
     | S100.LV lval =>
         let
@@ -83,16 +85,16 @@ struct
                code @ [Mips.MOVE (place,x)])
           | (Type.IntRef, Addr x) =>
               (Type.Int,
-               code @ [Mips.LW (place,x,makeConst 0)])
+               code @ [Mips.LW (x,place,makeConst 0)])
           | (Type.CharRef, Addr x) =>
               (Type.Char,
-               code @ [Mips.LB (place,x,makeConst 0)])
+               code @ [Mips.LB (x,place,makeConst 0)])
           | (_, Reg x) =>
               (Type.Int,
                code @ [Mips.MOVE (place,x)])
           | (_, Addr x) =>
               (Type.Int,
-               code @ [Mips.LW (place,x,makeConst 0)])
+               code @ [Mips.LW (x,place,makeConst 0)])
 	end
     | S100.Assign (lval,e,p) =>
         let
@@ -118,10 +120,10 @@ struct
                code0 @ code1 @ [Mips.MOVE (x,t), Mips.MOVE (place,t)])
           | (Type.IntRef, Addr x) =>
               (Type.Int,
-               code0 @ code1 @ [Mips.LW (x,t,makeConst 0), Mips.MOVE (place, t)])
+               code0 @ code1 @ [Mips.SW (t,x,makeConst 0), Mips.MOVE (place, t)])
           | (Type.CharRef, Addr x) =>
               (Type.Char,
-               code0 @ code1 @ [Mips.LB (x,t,makeConst 0), Mips.MOVE (place, t)])
+               code0 @ code1 @ [Mips.SB (t,x,makeConst 0), Mips.MOVE (place, t)])
           | _ => raise Error ("Unknown assignment type",p)
 	end
     | S100.Plus (e1,e2,pos) =>
@@ -313,7 +315,11 @@ struct
     case lval of
       S100.Var (x,p) =>
         (case lookup x vtable of
-	   SOME (ty,y) => ([],ty,Reg y)
+	   SOME (ty,y) => (case ty of
+			     Type.Int => ([],ty,Reg y)
+			   | Type.Char => ([],ty,Reg y)
+			   | Type.IntRef => ([],ty,Addr y)
+			   | Type.CharRef => ([],ty,Addr y))
 	 | NONE => raise Error ("Unknown variable "^x,p))
       | S100.Deref (x,p) => 
          (case lookup x vtable of
@@ -330,8 +336,8 @@ struct
          in
              (case lookup x vtable of
                 SOME (Type.IntRef,y) => (code0 @ 
-                                         [Mips.SLL (t2,t,"2"), 
-                                          Mips.ADD (t3,t2,y),
+                                         [Mips.SLL (t2,t,"2"),
+                                          Mips.ADD (t3,t,y),
                                           Mips.LW (t4,t3,"0")],Type.IntRef,Addr t4)
               | SOME (Type.CharRef,y) => (code0 @
                                           [Mips.ADD (t3,t,y),
@@ -577,6 +583,7 @@ struct
          Mips.SLL ("4", "4", "2"), (* make sure it gets word alligned *)
          Mips.LI ("2","9"),        (* sbrk service call *)
          Mips.SYSCALL,
+	 Mips.ADD ("16", "2", "0"), (* addi v0 to s0 *)
          Mips.LW ("4",SP,"0"),     (* restore a0 register *)
          Mips.ADDI(SP,SP,"4"),     (* restore stack pointer *)
          Mips.JR (RA,[]),
