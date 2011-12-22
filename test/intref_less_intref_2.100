@@ -1,0 +1,12 @@
+int main() {
+  int *a, b;
+  walloc(3);
+  a[0] = 1;
+  a[1] = 2;
+  a[2] = 7;
+  b = a[0] < a[1];
+
+  putint(b);
+
+  return 0;
+}
