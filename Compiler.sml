@@ -198,7 +198,7 @@ struct
 	       code1 @ code2 @ [Mips.SUB (place,t1,t2)])
 	    | (Type.IntRef, Type.Int) =>
 	      (Type.IntRef,
-	       code1 @ code2 @ [Mips.SLL (t1,t1,"2"), Mips.SUB (place,t1,t2)])
+	       code1 @ code2 @ [Mips.SLL (t2,t2,"2"), Mips.SUB (place,t1,t2)])
 	    | (Type.CharRef, Type.Int) =>
 	      (Type.CharRef,
 	       code1 @ code2 @ [Mips.SUB (place,t1,t2)])
