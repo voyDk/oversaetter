@@ -62,7 +62,7 @@ struct
 
         val ramLoc = [Mips.LI ("4", (makeConst (strSize c))), Mips.JAL ("balloc", []), Mips.ADD (t1,"2","0")]
       in
-        (Type.CharRef, ramLoc @ (ascii2mips (str2ascii c) t1 0))
+        (Type.CharRef, ramLoc @ (ascii2mips (str2ascii c) t1 0) @ [Mips.MOVE (place,t1)])
 	(*
 		Gemmer string, c, på den næste tilgængelige adresse.
 		Lægger reference til adresse i place
