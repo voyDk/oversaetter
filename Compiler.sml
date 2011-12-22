@@ -157,7 +157,7 @@ struct
 	       code1 @ code2 @ [Mips.SLL (t1,t1,"2"), Mips.ADD(place, t1, t2)])
 	    | (Type.IntRef, Type.Int) =>
 	      (Type.IntRef,
-	       code1 @ code2 @ [Mips.SLL (t1,t1,"2"), Mips.ADD(place, t1, t2)])
+	       code1 @ code2 @ [Mips.SLL (t2,t2,"2"), Mips.ADD(place, t1, t2)])
 	    | (Type.Int, Type.CharRef) =>
 	      (Type.CharRef,
 	       code1 @ code2 @ [Mips.ADD (place,t1,t2)])
@@ -588,7 +588,6 @@ struct
          Mips.SLL ("4", "4", "2"), (* make sure it gets word alligned *)
          Mips.LI ("2","9"),        (* sbrk service call *)
          Mips.SYSCALL,
-	 Mips.ADD ("16", "2", "0"), (* addi v0 to s0 *)
          Mips.LW ("4",SP,"0"),     (* restore a0 register *)
          Mips.ADDI(SP,SP,"4"),     (* restore stack pointer *)
          Mips.JR (RA,[]),
