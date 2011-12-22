@@ -1,0 +1,5 @@
+int main() {
+ char a, *b;
+ a<b;
+ return 0;
+}

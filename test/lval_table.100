@@ -1,0 +1,12 @@
+int main() {
+  int *a, b;
+  walloc(4);
+  a[0] = 3;
+  a[1] = 8;
+  a[2] = 4;
+  a[3] = 9;
+  b = a[2];
+
+  putint(b);
+  return 0;
+}
