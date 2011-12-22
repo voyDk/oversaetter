@@ -90,16 +90,16 @@ struct
                code @ [Mips.MOVE (place,x)])
           | (Type.IntRef, Addr x) =>
               (Type.Int,
-               code @ [Mips.LW (x,place,makeConst 0)])
+               code @ [Mips.LW (place,x,makeConst 0)])
           | (Type.CharRef, Addr x) =>
               (Type.Char,
-               code @ [Mips.LB (x,place,makeConst 0)])
+               code @ [Mips.LB (place,x,makeConst 0)])
           | (_, Reg x) =>
               (Type.Int,
                code @ [Mips.MOVE (place,x)])
           | (_, Addr x) =>
               (Type.Int,
-               code @ [Mips.LW (x,place,makeConst 0)])
+               code @ [Mips.LW (place,x,makeConst 0)])
 	end
     | S100.Assign (lval,e,p) =>
         let
