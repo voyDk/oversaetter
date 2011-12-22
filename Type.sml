@@ -99,13 +99,13 @@ struct
     | S100.Call (f,es,p) =>
         (case lookup f ftable of
 	   NONE => raise Error ("Unknown function: "^f,p)
-	 | SOME (parT,resultT) =>
+	 | SOME (parTs,resultT) =>
 	     let
-	       val argT = List.map (fn e => checkExp e vtable ftable) es
-               val typecastParT = List.map typeCast parT
-               val typecastArgT = List.map typeCast argT
+	       val argTs = List.map (fn e => checkExp e vtable ftable) es
+               val typecastParTs = List.map typeCast parTs
+               val typecastArgTs = List.map typeCast argTs
 	     in
-	       if typecastParT = typecastArgT then resultT
+	       if typecastParTs = typecastArgTs then resultT
 	       else raise Error ("Arguments don't match declaration of "^f, p)
 	     end)
 
