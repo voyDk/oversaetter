@@ -260,7 +260,7 @@ struct
           val (ty2, code2) = compileExp e2 vtable ftable t2
 	in
 	(*
-		exp1 < exp2	: Tjekker exp1 er skarpt mindre end exp2.
+		exp1 == exp2	: Tjekker exp1 er lig exp2.
 				  Returnerer 1 hvis sand, ellers 0
 
 		int1, int2		: Sammenligner værdier. Returnerer 1 hvis int1 == int2
