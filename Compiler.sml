@@ -209,7 +209,7 @@ struct
 				  Mips.XOR (t1, t1, t2), (* swap t1 og t2 *)
 				  Mips.XOR (t2, t1, t2),
 				  Mips.XOR (t1, t1, t2),
-				  Mips.LABEL (l1),
+				  Mips.LABEL l1,
 				  Mips.SUB (place,t1,t2),
 				  Mips.SRA (place, place, "2")])
 	    | (Type.CharRef, Type.CharRef) =>
@@ -219,7 +219,7 @@ struct
 				  Mips.XOR (t1, t1, t2), (* swap t1 og t2 *)
 				  Mips.XOR (t2, t1, t2),
 				  Mips.XOR (t1, t1, t2),
-				  Mips.LABEL (l1),
+				  Mips.LABEL l1,
 				  Mips.SUB (place,t1,t2)])
 	    | (_, _) => 
 		raise Error ("Type mismatch in assignment", pos)
@@ -342,11 +342,14 @@ struct
              (case lookup x vtable of
                 SOME (Type.IntRef,y) => (code0 @ 
                                          [Mips.SLL (t2,t,"2"),
-                                          Mips.ADD (t3,t,y),
-                                          Mips.LW (t4,t3,"0")],Type.IntRef,Addr t4)
+                                          Mips.ADD (t3,t2,y)],
+                                          Type.IntRef,Addr t3)
+                                          (*Mips.LW (t4,t3,"0")],Type.IntRef,Addr t4)*)
               | SOME (Type.CharRef,y) => (code0 @
-                                          [Mips.ADD (t3,t,y),
-                                           Mips.LW (t4,t3,"0")],Type.CharRef,Addr t4)
+                                          [Mips.ADD (t3,t,y)],
+                                          Type.CharRef,Addr t3)
+
+(*                                        Mips.LW (t4,t3,"0")],Type.CharRef,Addr t4)*)
               | SOME (_,_) => raise Error ("Invalid type "^x,p)
               | NONE => raise Error ("Unknown variable "^x,p))
          end
@@ -583,11 +586,12 @@ struct
 
          Mips.LABEL "walloc",      (* walloc function *)
          Mips.ADDI(SP,SP,"-4"),    (* allocate stack space *)
-         Mips.SW("4",SP,"0"),      (* save a0 register *)
+        (* Mips.SW("4",SP,"0"),*)      (* save a0 register *)
          Mips.MOVE ("4", "2"),     (* get argument for walloc call *)
          Mips.SLL ("4", "4", "2"), (* make sure it gets word alligned *)
          Mips.LI ("2","9"),        (* sbrk service call *)
          Mips.SYSCALL,
+         Mips.MOVE ("16","2"),
          Mips.LW ("4",SP,"0"),     (* restore a0 register *)
          Mips.ADDI(SP,SP,"4"),     (* restore stack pointer *)
          Mips.JR (RA,[]),
