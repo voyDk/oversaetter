@@ -50,18 +50,29 @@ struct
 	   [Mips.LUI (place, makeConst (n div 65536)),
 	   Mips.ORI (place, place, makeConst (n mod 65536))])
     | S100.CharConst (c,pos) =>
-	  (Type.Char, [Mips.LI (place,(Char.toString c))]) (* lægger char på place. *)
+	  (Type.Char, [Mips.LI (place, (makeConst (Char.ord c)))]) (* lægger char på place. *)
     | S100.StringConst (c,pos) =>
       let
         val t1 = "_stringConst_"^newName()
+        fun strSize c = (String.size c)+1 (* +1 for null-termination *)
+        fun str2ascii s = List.map (makeConst o Char.ord) (String.explode s)
+
+        fun ascii2mips (a::aa) ram acc = [Mips.SB (a, ram, (makeConst acc))] @ (ascii2mips aa ram (acc+1))
+          | ascii2mips [] ram acc = []
+
+        val ramLoc = [Mips.LI ("4", (makeConst (strSize c))), Mips.JAL ("balloc", []), Mips.ADD (t1,"2","0")]
       in
+        (Type.CharRef, ramLoc @ (ascii2mips (str2ascii c) t1 0) @ [Mips.MOVE (place,t1)])
 	(*
 		Gemmer string, c, på den næste tilgængelige adresse.
 		Lægger reference til adresse i place
 	*)
+
+(*
         (Type.CharRef, [Mips.LA (place, t1),
 			Mips.LABEL t1,
 			Mips.ASCIIZ c]) 
+*)
       end
     | S100.LV lval =>
         let
