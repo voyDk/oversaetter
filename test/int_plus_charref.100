@@ -1,0 +1,14 @@
+int main() {
+  char *a, *r;
+  r = balloc(5);
+  r[0] = 'a';
+  r[1] = 'b';
+  r[2] = 'c';
+  r[3] = 'd';
+
+  a = 2 + r;
+
+  putint(a*);
+
+  return 0;
+}

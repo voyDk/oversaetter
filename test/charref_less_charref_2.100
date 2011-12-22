@@ -1,0 +1,13 @@
+int main() {
+  char *a;
+  int b;
+  balloc(3);
+  a[0] = 2;
+  a[1] = 1;
+  a[2] = 7;
+  b = a[0] < a[1];
+
+  putint(b);
+
+  return 0;
+}

@@ -34,8 +34,9 @@ local open Obj Lexing in
  (* used to correct input to Char/String.fromCString *)
  fun removeQuotes s = String.substring(s,1,String.size(s)-2); 
  
- fun removeStar s = String.substring(s,1,String.size(s)-1);
+ (*fun removeStar s = String.substring(s,1,String.size(s)-1);*)
 
+ fun removeStar s = String.implode (List.filter (fn x => not (x = #"*")) (String.explode s))
 
 fun action_23 lexbuf = (
  lexerError lexbuf "Illegal symbol in input" )
@@ -70,7 +71,7 @@ and action_9 lexbuf = (
 and action_8 lexbuf = (
  keyword (getLexeme lexbuf,getPos lexbuf) )
 and action_7 lexbuf = (
- Parser.DEREF (getLexeme lexbuf, getPos lexbuf) )
+ Parser.DEREF (removeStar(getLexeme lexbuf), getPos lexbuf) )
 and action_6 lexbuf = (
  Parser.REF (removeStar(getLexeme lexbuf), getPos lexbuf) )
 and action_5 lexbuf = (

@@ -1,0 +1,11 @@
+int main() {
+  char a, b;
+  int c;
+  a = 'a';
+  b = 'b';
+  c = a < b;
+
+  putint(c);
+
+  return 0;
+}

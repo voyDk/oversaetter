@@ -1,0 +1,11 @@
+int main() {
+  char a;
+  a = '\\';
+  if (a == '\\') {
+   putint(1);
+   return 1;
+  }
+
+  putint(0);
+  return 0;
+}
