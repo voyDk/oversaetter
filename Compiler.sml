@@ -613,6 +613,9 @@ struct
          Mips.SLL ("11","11","2"), 
          Mips.LI ("2", "9"),      (* sbrk service call *)
          Mips.SYSCALL,
+         Mips.MOVE("16","2"),
+         Mips.LW ("4",SP,"0"),
+         Mips.ADDI(SP,SP,"4"),
          Mips.JR (RA,[]),
 
 	 Mips.DATA "",
