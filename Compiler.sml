@@ -463,7 +463,7 @@ struct
 		Slutter blok (blok slut label)
 	*)
         [Mips.LABEL ("_block_begin_" ^ t1)] @
-        compileStats ss (vtable1 @ vtable) ftable ("_block_exit_" ^ t1)
+        compileStats ss (vtable1 @ vtable) ftable exitLabel
         @ [Mips.LABEL ("_block_exit_" ^ t1)] 
       end
       

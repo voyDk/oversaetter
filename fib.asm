@@ -59,12 +59,12 @@ _else__6_:
 # was:	jal	fib, 2
 	ori	$17, $2, 0
 # was:	ori	_plus1__12_, 2, 0
-# 	ori	_minus1__18_,n_4_,0
+# 	ori	_minus1__20_,n_4_,0
 	ori	$2, $0, 2
-# was:	ori	_minus2__19_, 0, 2
+# was:	ori	_minus2__21_, 0, 2
 	sub	$2, $16, $2
-# was:	sub	_exps__17_, _minus1__18_, _minus2__19_
-# 	ori	2,_exps__17_,0
+# was:	sub	_exps__19_, _minus1__20_, _minus2__21_
+# 	ori	2,_exps__19_,0
 	jal	fib
 # was:	jal	fib, 2
 # 	ori	_plus2__13_,2,0
@@ -96,6 +96,35 @@ putint:
 	jr	$31
 getint:
 	ori	$2, $0, 5
+	syscall
+	jr	$31
+walloc:
+	addi	$29, $29, -4
+	sw	$4, 0($29)
+	ori	$4, $2, 0
+	sll	$4, $4, 2
+	ori	$2, $0, 9
+	syscall
+	add	$16, $2, $0
+	lw	$4, 0($29)
+	addi	$29, $29, 4
+	jr	$31
+balloc:
+	addi	$29, $29, -4
+	sw	$4, 0($29)
+	ori	$4, $2, 0
+	ori	$8, $4, 0
+_remaind_:
+	addi	$9, $0, 1
+	slt	$10, $8, $9
+	bne	$10, $0, _remaind_exit
+	addi	$11, $11, 1
+	addi	$12, $0, 4
+	sub	$8, $8, $12
+	j	_remaind_
+_remaind_exit:
+	sll	$11, $11, 2
+	ori	$2, $0, 9
 	syscall
 	jr	$31
 	.data	

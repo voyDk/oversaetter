@@ -3,7 +3,7 @@
 
 int g()
 {
-  f(getchar());
+  f(getint());
   return 0;
 }
 
