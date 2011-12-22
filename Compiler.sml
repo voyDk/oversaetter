@@ -67,12 +67,6 @@ struct
 		Gemmer string, c, på den næste tilgængelige adresse.
 		Lægger reference til adresse i place
 	*)
-
-(*
-        (Type.CharRef, [Mips.LA (place, t1),
-			Mips.LABEL t1,
-			Mips.ASCIIZ c]) 
-*)
       end
     | S100.LV lval =>
         let
