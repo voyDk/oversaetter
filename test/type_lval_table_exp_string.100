@@ -1,0 +1,6 @@
+int main() {
+ char *a;
+ balloc(2);
+ a[“char”];
+ return 0;
+}
